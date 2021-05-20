@@ -4,14 +4,20 @@
 'use strict';
 
 /**
- * @namespace Tools.files
+ * @namespace Tools.files.watcher
  * @module Tools/mid/FilesWather
  */
 
 const _global = _global_;
 const _ = _global_.wTools;
-const Self = _.filesWatcher = _.filesWatcher || Object.create( null );
+const files = _.files = _.files || Object.create( null );
+const Self = files.watcher = files.watcher || Object.create( null );
 
-_.props.supplement( _.files, FilesExtension );
+let Extension =
+{
+  default : null
+}
+debugger
+_.props.supplement( Self, Extension );
 
 })();
