@@ -39,6 +39,156 @@ function onSuiteEnd()
   _.path.tempClose( self.suiteTempPath );
 }
 
+//
+
+async function terminalFile( test )
+{
+  let a = test.assetFor( false );
+
+  /* - */
+
+  test.case = 'create'
+  var filePath = a.abs( 'file.js' );
+  var ready = _.Consequence();
+  a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
+  watcher.on( 'change', ( e ) => ready.take( e ) );
+  a.fileProvider.fileWrite( filePath, 'a' );
+  var e = await ready;
+  var exp =
+  [{
+    filePath : 'file.js',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( e.files, exp )
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'change'
+  var filePath = a.abs( 'file.js' );
+  a.fileProvider.fileWrite( filePath, 'a' );
+  var ready = _.Consequence();
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
+  watcher.on( 'change', ( e ) => ready.take( e ) );
+  a.fileProvider.fileWrite( filePath, 'ab' );
+  var e = await ready;
+  var exp =
+  [{
+    filePath : 'file.js',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( e.files, exp )
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'rename'
+  var filePath = a.abs( 'file.js' );
+  var filePath2 = a.abs( 'file.x' );
+  a.fileProvider.fileWrite( filePath, 'a' );
+  var ready = _.Consequence();
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
+  watcher.on( 'change', ( e ) => ready.take( e ) )
+  a.fileProvider.fileRename( filePath2, filePath );
+  var e = await ready;
+  var exp =
+  [{
+    filePath : 'file.js',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( e.files, exp )
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'delete'
+  var filePath = a.abs( 'file.js' );
+  a.fileProvider.fileWrite( filePath, 'a' );
+  var ready = _.Consequence();
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
+  watcher.on( 'change', ( e ) => ready.take( e ) )
+  a.fileProvider.filesDelete( filePath );
+  var e = await ready;
+  var exp =
+  [{
+    filePath : 'file.js',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( e.files, exp )
+  await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
+async function directory( test )
+{
+  let a = test.assetFor( false );
+
+  /* - */
+
+  test.case = 'create'
+  var filePath = a.abs( 'dir' );
+  var ready = _.Consequence();
+  a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
+  watcher.on( 'change', ( e ) => ready.take( e ) );
+  a.fileProvider.dirMake( filePath );
+  var e = await ready;
+  var exp =
+  [{
+    filePath : 'dir',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( e.files, exp )
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'rename'
+  var filePath = a.abs( 'dira' );
+  var filePath2 = a.abs( 'dirb' );
+  var ready = _.Consequence();
+  a.fileProvider.dirMake( filePath )
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
+  watcher.on( 'change', ( e ) => ready.take( e ) )
+  a.fileProvider.fileRename( filePath2, filePath );
+  var e = await ready;
+  var exp =
+  [{
+    filePath : 'dira',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( e.files, exp )
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'delete'
+  var filePath = a.abs( 'dir' );
+  var ready = _.Consequence();
+  a.fileProvider.dirMake( filePath )
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
+  watcher.on( 'change', ( e ) => ready.take( e ) )
+  a.fileProvider.filesDelete( filePath );
+  var e = await ready;
+  var exp =
+  [{
+    filePath : 'dir',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( e.files, exp )
+  await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
 // --
 // declare
 // --
@@ -61,6 +211,8 @@ const Proto =
 
   tests :
   {
+    terminalFile,
+    directory
   }
 
 }

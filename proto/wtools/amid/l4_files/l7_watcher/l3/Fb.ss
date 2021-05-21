@@ -371,8 +371,8 @@ let Extension =
 }
 
 Object.assign( _.files.watcher, Extension );
-_.assert( watcher.default === null );
+_.assert( _.files.watcher.default === null );
 
-watcher.default = _.files.watcher;
+_.files.watcher.default = _.files.watcher.fb;
 
 })();

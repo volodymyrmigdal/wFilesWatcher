@@ -12,8 +12,8 @@
 const _global = _global_;
 const _ = _global_.wTools;
 _.assert( !!_.files.watcher );
-_.assert( !_.files.abstract );
-_.watcher.abstract = _.watcher.abstract || Object.create( null );
+_.assert( !_.files.watcher.abstract );
+_.files.watcher.abstract = _.files.watcher.abstract || Object.create( null );
 
 // --
 // implementation
@@ -76,7 +76,7 @@ function close()
   ready.then( () =>
   {
     _.each( self.ehandler.events, ( e, k ) => self.off( k ) );
-    _.arrayRemoveElementOnceStrictly( watcher.watcherArray, self );
+    _.arrayRemoveElementOnceStrictly( _.files.watcher.watcherArray, self );
     self.enabled = false;
     self.closed = true;
     return self;
@@ -136,6 +136,6 @@ let Extension =
 
 }
 
-Object.assign( _.watcher.abstract, Extension );
+Object.assign( _.files.watcher.abstract, Extension );
 
 })();
