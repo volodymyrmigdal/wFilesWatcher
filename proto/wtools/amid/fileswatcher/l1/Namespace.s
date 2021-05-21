@@ -17,7 +17,7 @@ let Extension =
 {
   default : null
 }
-debugger
+
 _.props.supplement( Self, Extension );
 
 })();
