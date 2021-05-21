@@ -135,7 +135,7 @@ path:
       raw: compiled
       content: prime
   entry.proto.no.tests:
-    path: proto/wtools/amid/fileswatcher/entry/FilesWatcher.s
+    path: proto/wtools/amid/l4_files/l7_watcher/entry/FilesWatcher.s
     criterion:
       tests: no.tests
   entry.proto.only.tests:
@@ -143,7 +143,7 @@ path:
     criterion:
       tests: only.tests
   entry.out.raw.debug:
-    path: '{path::out.*=1}/source/wtools/amid/fileswatcher/entry/FilesWatcher.s'
+    path: '{path::out.*=1}/source/wtools/amid/l4_files/l7_watcher/entry/FilesWatcher.s'
     criterion:
       debug:
         - debug
@@ -159,7 +159,7 @@ path:
       raw: compiled
       content: prime
   npm.proto.entry:
-    - proto/wtools/amid/fileswatcher/entry/FilesWatcher.s
+    - proto/wtools/amid/l4_files/l7_watcher/entry/FilesWatcher.s
     - proto/node_modules/wFilesWatcher
 reflector:
   reflect.proto:
