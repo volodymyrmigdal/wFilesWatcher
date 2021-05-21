@@ -15,7 +15,8 @@ const Self = files.watcher = files.watcher || Object.create( null );
 
 let Extension =
 {
-  default : null
+  default : null,
+  watcherArray : []
 }
 
 _.props.supplement( Self, Extension );

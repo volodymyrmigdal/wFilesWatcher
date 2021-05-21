@@ -71,6 +71,7 @@ function _enable()
           watch : resp.watch,
           clock : resp.clock,
           relativePath : resp.relative_path,
+          filePath
         }
 
         self.watchers.push( descriptor );
@@ -84,14 +85,13 @@ function _enable()
 
   ready.then( () =>
   {
-    let subscriptionsMap = Object.create( null );
     let cons = [];
 
     self.watchers.forEach( ( descriptor ) =>
     {
       /* Avoid subscription duplication for the same root path */
 
-      if( subscriptionsMap[ descriptor.watch ] )
+      if( self.subscriptionsMap[ descriptor.watch ] )
       return;
 
       let subscriptionDescriptor =
@@ -101,7 +101,7 @@ function _enable()
         relative_path : descriptor.relativePath
       };
 
-      subscriptionsMap[ descriptor.watch ] = subscriptionDescriptor;
+      self.subscriptionsMap[ descriptor.watch ] = { subscriptionDescriptor, watchDescriptor : descriptor };
 
       let con = _.Consequence();
       self.client.command([ 'subscribe', descriptor.watch, 'defaultSub', subscriptionDescriptor ], con.tolerantCallback() );
@@ -138,6 +138,93 @@ function _enable()
 
 //
 
+function _unsubscribe()
+{
+  let self = this;
+  let cons = [];
+
+  self.watchers.forEach( ( descriptor ) =>
+  {
+    let con = _.Consequence();
+    self.client.command([ 'unsubscribe', descriptor.watch, 'defaultSub' ], con.tolerantCallback() );
+    cons.push( con );
+  });
+
+  return _.Consequence.AndKeep( ... cons );
+}
+
+//
+
+function _unwatch()
+{
+  let self = this;
+  let cons = [];
+
+  self.watchers.forEach( ( descriptor ) =>
+  {
+    let con = _.Consequence();
+    self.client.command([ 'watch-del', descriptor.watch ], con.tolerantCallback() );
+    cons.push( con );
+  });
+
+  return _.Consequence.AndKeep( ... cons );
+}
+
+//
+
+function _resubscribe()
+{
+  let self = this;
+  let cons = [];
+
+  for( let k in self.subscriptionsMap )
+  {
+    let sub = self.subscriptionsMap[ k ];
+    let watchDescriptor = sub.watchDescriptor;
+    let subscriptionDescriptor = sub.subscriptionDescriptor;
+    let con = _.Consequence();
+    self.client.command([ 'subscribe', watchDescriptor.watch, 'defaultSub', subscriptionDescriptor ], con.tolerantCallback() );
+    cons.push( con );
+  }
+
+  return _.Consequence.AndKeep( ... cons );
+}
+
+//
+
+function _rewatch()
+{
+  let self = this;
+  let cons = [];
+
+  self.watchers.forEach( ( descriptor ) =>
+  {
+    let con = _.Consequence();
+    self.client.command([ 'watch-project', descriptor.filePath ], ( err, resp ) =>
+    {
+      if( err )
+      return con.error( _.err( 'Error initiating watch:', err ) );
+
+      if( 'warning' in resp)
+      {
+        logger.log( 'warning: ', resp.warning );
+      }
+      logger.log( 'watch established on ', resp.watch, ' relative_path', resp.relative_path );
+
+      descriptor.watch = resp.watch;
+      descriptor.clock = resp.clock;
+      descriptor.relativePath = resp.relative_path;
+
+      con.take( null )
+    })
+    cons.push( con );
+  });
+
+  return _.Consequence.AndKeep( ... cons );
+}
+
+//
+
 function _resume()
 {
   let self = this;
@@ -148,7 +235,10 @@ function _resume()
   if( !self.paused )
   return self;
 
-  throw _.err( 'implement' );
+  let ready = _.take( null )
+
+  ready.then( () => _rewatch.call( self ) )
+  ready.then( () => _resubscribe.call( self ) )
 
   return self;
 }
@@ -162,9 +252,12 @@ function _pause()
   if( self.paused )
   return null;
 
-  throw _.err( 'implement' )
+  let ready = _.take( null )
 
-  return self;
+  ready.then( () => _unsubscribe.call( self ) )
+  ready.then( () => _unwatch.call( self ) )
+
+  return ready;
 }
 
 //
@@ -176,7 +269,7 @@ function _close()
   if( !self.enabled )
   return null;
 
-  let ready = _.Consequence()
+  let ready = _.take( null )
 
   ready.thenGive( () => self.client.command( [ 'watch-del-all' ], ready.tolerantCallback() ) );
   ready.thenGive( () => self.client.command( [ 'shutdown-server' ], ready.tolerantCallback() ) );
@@ -197,6 +290,10 @@ let InterfaceMethods =
 
 let InterfaceFields =
 {
+  client : null,
+
+  watchers : [],
+  subscriptionsMap : Object.create( null )
 }
 
 //
@@ -219,12 +316,14 @@ function watch( filePath, o )
 
   let o2 = Object.create( watcher.abstract );
 
+  _.arrayAppendElementOnceStrictly( watcher.watcherArray, o2 );
+
   _.props.extend( o2, Interface )
 
   o2.filePath = _.path.mapsPair( null, filePath );
 
   if( o.enabled )
-  o2.resume();
+  return o2.resume();
 
   return o2;
 }

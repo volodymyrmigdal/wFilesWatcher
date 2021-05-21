@@ -105,6 +105,8 @@ function off()
 
 _.routine.extend( off, _.event.off )
 
+//
+
 let InterfaceMethods =
 {
   resume,
@@ -124,9 +126,6 @@ let InterfaceFields =
   paused : 0,
 
   filePath : null,
-  client : null,
-
-  watchers : [],
 
   ehandler :
   {
