@@ -11,7 +11,7 @@ if( typeof module !== 'undefined' )
   _.include( 'wProcess' );
   _.include( 'wFiles' );
 
-  require( '../fileswatcher/include/Top.s' );
+  require( '../l4_files/l7_watcher/include/Top.s' );
 
 }
 
