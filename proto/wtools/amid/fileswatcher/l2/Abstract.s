@@ -77,6 +77,7 @@ function close()
     _.each( self.ehandler.events, ( e, k ) => self.off( k ) );
     _.arrayRemoveElementOnceStrictly( watcher.watcherArray, self );
     self.enabled = false;
+    self.closed = true;
     return self;
   });
 
@@ -124,6 +125,7 @@ let InterfaceFields =
 {
   enabled : 0,
   paused : 0,
+  closed : 0,
 
   filePath : null,
 
