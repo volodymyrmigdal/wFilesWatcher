@@ -13,10 +13,11 @@ const _global = _global_;
 const _ = _global_.wTools;
 _.assert( !!_.files.watcher );
 _.assert( !_.files.abstract );
-const watcher = _.files.watcher;
-const Self = watcher.abstract = Object.create( null );
+_.watcher.abstract = _.watcher.abstract || Object.create( null );
 
-//
+// --
+// implementation
+// --
 
 function resume()
 {
@@ -106,9 +107,11 @@ function off()
 
 _.routine.extend( off, _.event.off )
 
-//
+// --
+// extension
+// --
 
-let InterfaceMethods =
+let Extension =
 {
   resume,
   _resume : null,
@@ -118,11 +121,8 @@ let InterfaceMethods =
   _close : null,
 
   on,
-  off
-}
+  off,
 
-let InterfaceFields =
-{
   enabled : 0,
   paused : 0,
   closed : 0,
@@ -133,9 +133,9 @@ let InterfaceFields =
   {
     events : { 'change' : [] }
   }
+
 }
 
-_.props.extend( Self, InterfaceFields );
-_.props.extend( Self, InterfaceMethods );
+Object.assign( _.watcher.abstract, Extension );
 
 })();

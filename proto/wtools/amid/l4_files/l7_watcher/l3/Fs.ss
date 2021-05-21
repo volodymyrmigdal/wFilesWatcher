@@ -13,12 +13,13 @@ const _global = _global_;
 const _ = _global_.wTools;
 _.assert( !!_.files.watcher );
 _.assert( !!_.files.watcher.abstract );
-const watcher = _.files.watcher;
-const Self = watcher.fs = watcher.fs || Object.create( null );
+_.watcher.fs = _.watcher.fs || Object.create( null );
 
 const Fs = require( 'fs' );
 
-//
+// --
+// implementation
+// --
 
 function _enable()
 {
@@ -38,7 +39,7 @@ function _enable()
       watcherDescriptor.filePath = filePath;
       watcherDescriptor.watch = _watcherMakeFor.call( self, filePath );
 
-      self.watchers.push( watcherDescriptor );
+      self.watcherArray.push( watcherDescriptor );
       _watcherRegisterCallbacks.call( self, watcherDescriptor.watch )
     })
 
@@ -91,7 +92,7 @@ function _unwatch()
 {
   let self = this;
 
-  self.watchers.forEach( ( descriptor ) =>
+  self.watcherArray.forEach( ( descriptor ) =>
   {
     descriptor.watch.close()
     descriptor.watch = null;
@@ -106,7 +107,7 @@ function _rewatch()
 {
   let self = this;
 
-  self.watchers.forEach( ( descriptor ) =>
+  self.watcherArray.forEach( ( descriptor ) =>
   {
     descriptor.watch = _watcherMakeFor.call( self, descriptor.filePath );
     _watcherRegisterCallbacks.call( self, descriptor.watch )
@@ -159,34 +160,34 @@ function _close()
 
   _unwatch.call( self )
 
-  _.longEmpty( self.watchers );
+  _.longEmpty( self.watcherArray );
 
   return null;
 }
 
+// //
 //
-
-let InterfaceMethods =
-{
-  _resume,
-  _pause,
-  _close,
-}
-
+// let InterfaceMethods =
+// {
+//   _resume,
+//   _pause,
+//   _close,
+// }
 //
-
-let InterfaceFields =
-{
-  watchers : []
-}
-
+// //
 //
-
-let Interface =
-{
-  ... InterfaceFields,
-  ... InterfaceMethods
-}
+// let InterfaceFields =
+// {
+//   watcherArray : []
+// }
+//
+// //
+//
+// let Interface =
+// {
+//   ... InterfaceFields,
+//   ... InterfaceMethods
+// }
 
 //
 
@@ -216,17 +217,23 @@ function watch( filePath, o )
 watch.defaults =
 {
   enabled : 1,
-  recursive : 0
+  recursive : 0,
+  watcherArray : [],
+  _resume,
+  _pause,
+  _close,
 }
 
-//
+// --
+// extension
+// --
 
 let Extension =
 {
   watch,
 }
 
-_.props.supplement( Self, Extension );
+Object.assign( _.watcher.fs, Extension );
 _.assert( watcher.default === watcher.fb );
 
 })();

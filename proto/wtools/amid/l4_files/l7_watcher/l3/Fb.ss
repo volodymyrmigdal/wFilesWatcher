@@ -13,12 +13,13 @@ const _global = _global_;
 const _ = _global_.wTools;
 _.assert( !!_.files.watcher );
 _.assert( !!_.files.watcher.abstract );
-const watcher = _.files.watcher;
-const Self = watcher.fb = watcher.fb || Object.create( null );
+_.files.watcher.fb = _.files.watcher.fb || Object.create( null );
 
 const Watchman = require( 'fb-watchman' );
 
-//
+// --
+// implementation
+// --
 
 function _enable()
 {
@@ -74,7 +75,7 @@ function _enable()
           filePath
         }
 
-        self.watchers.push( descriptor );
+        self.watcherArray.push( descriptor );
 
         con.take( null )
       })
@@ -87,11 +88,11 @@ function _enable()
   {
     let cons = [];
 
-    self.watchers.forEach( ( descriptor ) =>
+    self.watcherArray.forEach( ( descriptor ) =>
     {
       /* Avoid subscription duplication for the same root path */
 
-      if( self.subscriptionsMap[ descriptor.watch ] )
+      if( self.subscriptionMap[ descriptor.watch ] )
       return;
 
       let subscriptionDescriptor =
@@ -101,7 +102,7 @@ function _enable()
         relative_path : descriptor.relativePath
       };
 
-      self.subscriptionsMap[ descriptor.watch ] = { subscriptionDescriptor, watchDescriptor : descriptor };
+      self.subscriptionMap[ descriptor.watch ] = { subscriptionDescriptor, watchDescriptor : descriptor };
 
       let con = _.Consequence();
       self.client.command([ 'subscribe', descriptor.watch, 'defaultSub', subscriptionDescriptor ], con.tolerantCallback() );
@@ -161,7 +162,7 @@ function _unsubscribe()
   let self = this;
   let cons = [];
 
-  self.watchers.forEach( ( descriptor ) =>
+  self.watcherArray.forEach( ( descriptor ) =>
   {
     let con = _.Consequence();
     self.client.command([ 'unsubscribe', descriptor.watch, 'defaultSub' ], con.tolerantCallback() );
@@ -178,7 +179,7 @@ function _unwatch()
   let self = this;
   let cons = [];
 
-  self.watchers.forEach( ( descriptor ) =>
+  self.watcherArray.forEach( ( descriptor ) =>
   {
     let con = _.Consequence();
     self.client.command([ 'watch-del', descriptor.watch ], con.tolerantCallback() );
@@ -195,9 +196,9 @@ function _resubscribe()
   let self = this;
   let cons = [];
 
-  for( let k in self.subscriptionsMap )
+  for( let k in self.subscriptionMap )
   {
-    let sub = self.subscriptionsMap[ k ];
+    let sub = self.subscriptionMap[ k ];
     let watchDescriptor = sub.watchDescriptor;
     let subscriptionDescriptor = sub.subscriptionDescriptor;
     let con = _.Consequence();
@@ -215,7 +216,7 @@ function _rewatch()
   let self = this;
   let cons = [];
 
-  self.watchers.forEach( ( descriptor ) =>
+  self.watcherArray.forEach( ( descriptor ) =>
   {
     let con = _.Consequence();
     self.client.command([ 'watch-project', descriptor.filePath ], ( err, resp ) =>
@@ -287,7 +288,7 @@ function _close()
   if( !self.enabled )
   return null;
 
-  let ready = _.take( null )
+  let ready = _.take( null );
 
   ready.thenGive( () => self.client.command( [ 'watch-del-all' ], ready.tolerantCallback() ) );
   ready.thenGive( () => self.client.command( [ 'shutdown-server' ], ready.tolerantCallback() ) );
@@ -295,32 +296,32 @@ function _close()
   return ready;
 }
 
+// //
 //
-
-let InterfaceMethods =
-{
-  _resume,
-  _pause,
-  _close,
-}
-
+// let InterfaceMethods =
+// {
+//   _resume,
+//   _pause,
+//   _close,
+// }
 //
-
-let InterfaceFields =
-{
-  client : null,
-
-  watchers : [],
-  subscriptionsMap : Object.create( null )
-}
-
+// //
 //
-
-let Interface =
-{
-  ... InterfaceFields,
-  ... InterfaceMethods
-}
+// let InterfaceFields =
+// {
+//   client : null,
+//
+//   watcherArray : [],
+//   subscriptionMap : Object.create( null )
+// }
+//
+// //
+//
+// let Interface =
+// {
+//   ... InterfaceFields,
+//   ... InterfaceMethods
+// }
 
 //
 
@@ -348,19 +349,30 @@ function watch( filePath, o )
 
 watch.defaults =
 {
-  enabled : 1
+  enabled : 1,
+  client : null,
+
+  watcherArray : null,
+  subscriptionMap : null,
+
+  _resume,
+  _pause,
+  _close,
+
 }
 
-//
+// --
+// extension
+// --
 
 let Extension =
 {
   watch,
 }
 
-_.props.supplement( Self, Extension );
+Object.assign( _.files.watcher, Extension );
 _.assert( watcher.default === null );
 
-watcher.default = Self;
+watcher.default = _.files.watcher;
 
 })();
