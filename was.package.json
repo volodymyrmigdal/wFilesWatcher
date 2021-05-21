@@ -1,0 +1,31 @@
+{
+  "name" : "wfileswatcher",
+  "version" : "0.1.0",
+  "engine" : "node >= 10.0.0",
+  "enabled" : 1,
+  "description" : "Watch changes in the files tree of the fyles system",
+  "license" : "MIT",
+  "author" : "Kostiantyn Wandalen <wanalen@01.school>",
+  "contributors" :
+  [
+    { "name" : "Kostiantyn Wandalen", "email" : "wanalen@01.school" },
+    { "name" : "Volodymyr M.", "email" : "volodymyr.migdal@gmail.com" }
+  ],
+  "main" : "proto/node_modules/wFilesWatcher",
+  "files" : [ "proto/wtools/amid/fileswatcher", "out", "proto/node_modules" ],
+  "scripts" : { "test" : "wtest .run 'proto/**' rapidity:-1", "docgen" : "wdocgen proto" },
+  "repository" : { "type" : "git", "url" : "https://github.com/Wandalen/wFilesWatcher.git" },
+  "bugs" :
+  {
+    "url" : "https://github.com/Wandalen/wFilesWatcher/issues"
+  },
+  "dependencies" :
+  {
+    "wTools" : "",
+    "wConsequence" : "",
+    "wCopyable" : "",
+    "fb-watchman" : "2.0.1"
+  },
+  "devDependencies" : { "eslint" : "7.1.0", "wTesting" : "" },
+  "keywords" : [ "wTools", "wFilesWatcher", "fileswatcher" ]
+}
