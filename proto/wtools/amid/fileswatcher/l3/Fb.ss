@@ -121,7 +121,25 @@ function _enable()
       if( resp.is_fresh_instance )
       return;
 
-      _.event.eventGive( self.ehandler, { event : 'change', args : [ resp ] } );
+      let files = resp.files.map( ( file ) =>
+      {
+        let record = Object.create( null );
+        record.filePath = file.name;
+        record.watchPath = resp.root;
+        record.size = file.size;
+        record.native = file;
+        return record;
+      })
+
+      let e =
+      {
+        kind : 'change',
+        watcher : self,
+        reason : null,
+        files
+      }
+
+      _.event.eventGive( self.ehandler, { event : 'change', args : [ e ] } );
     });
 
     return null;

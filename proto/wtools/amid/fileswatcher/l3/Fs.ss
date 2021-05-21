@@ -55,7 +55,9 @@ function _watcherMakeFor( filePath )
 {
   let self = this;
   let op = { recursive : self.recursive };
-  return Fs.watch( _.path.nativize( filePath ), op );
+  let watch = Fs.watch( _.path.nativize( filePath ), op );
+  watch.filePath = filePath;
+  return watch;
 }
 
 //
@@ -65,7 +67,21 @@ function _watcherRegisterCallbacks( watcher )
   let self = this;
   watcher.on( 'change', ( type, filename ) =>
   {
-    _.event.eventGive( self.ehandler, { event : 'change', args : [ { type, filename } ] } );
+    let record = Object.create( null );
+    record.filePath = filename;
+    record.watchPath = watcher.filePath;
+    record.size = null;
+    record.native = arguments;
+
+    let e =
+    {
+      kind : 'change',
+      watcher : self,
+      reason : null,
+      files : [ record ]
+    }
+
+    _.event.eventGive( self.ehandler, { event : 'change', args : [ e ] } );
   });
 }
 
