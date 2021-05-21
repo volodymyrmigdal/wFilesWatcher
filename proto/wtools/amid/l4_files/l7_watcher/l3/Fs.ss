@@ -13,7 +13,7 @@ const _global = _global_;
 const _ = _global_.wTools;
 _.assert( !!_.files.watcher );
 _.assert( !!_.files.watcher.abstract );
-_.watcher.fs = _.watcher.fs || Object.create( null );
+_.files.watcher.fs = _.files.watcher.fs || Object.create( null );
 
 const Fs = require( 'fs' );
 
@@ -33,6 +33,9 @@ function _enable()
 
   ready.then( () =>
   {
+    if( self.watcherArray === null )
+    self.watcherArray = [];
+
     _.each( self.filePath, ( val, filePath ) =>
     {
       let watcherDescriptor = Object.create( null );
@@ -66,11 +69,12 @@ function _watcherMakeFor( filePath )
 function _watcherRegisterCallbacks( watcher )
 {
   let self = this;
-  watcher.on( 'change', ( type, filename ) =>
+  watcher.on( 'change', function ( type, filename )
   {
     let record = Object.create( null );
     record.filePath = filename;
     record.watchPath = watcher.filePath;
+    record.type = type;
     record.size = null;
     record.native = arguments;
 
@@ -81,7 +85,6 @@ function _watcherRegisterCallbacks( watcher )
       reason : null,
       files : [ record ]
     }
-
     _.event.eventGive( self.ehandler, { event : 'change', args : [ e ] } );
   });
 }
@@ -199,17 +202,20 @@ function watch( filePath, o )
 
   _.routine.options_( watch, o );
 
-  let o2 = Object.create( watcher.abstract );
+  let o2 = Object.create( _.files.watcher.abstract );
 
-  _.arrayAppendElementOnceStrictly( watcher.watcherArray, o2 );
+  _.arrayAppendElementOnceStrictly( _.files.watcher.watcherArray, o2 );
 
-  _.props.extend( o2, Interface )
+  _.props.extend( o2, o )
 
   o2.filePath = _.path.mapsPair( null, filePath );
   o2.recursive = o.recursive;
 
   if( o.enabled )
-  return o2.resume();
+  {
+    o2.enabled = false;
+    return o2.resume();
+  }
 
   return o2;
 }
@@ -218,7 +224,7 @@ watch.defaults =
 {
   enabled : 1,
   recursive : 0,
-  watcherArray : [],
+  watcherArray : null,
   _resume,
   _pause,
   _close,
@@ -233,7 +239,7 @@ let Extension =
   watch,
 }
 
-Object.assign( _.watcher.fs, Extension );
-_.assert( watcher.default === watcher.fb );
+Object.assign( _.files.watcher.fs, Extension );
+_.assert( _.files.watcher.default === _.files.watcher.fb );
 
 })();
