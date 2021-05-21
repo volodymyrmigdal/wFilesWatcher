@@ -25,11 +25,11 @@
   },
   "dependencies" :
   {
-    "wTools" : "",
-    "wConsequence" : "",
-    "wCopyable" : "",
-    "fb-watchman" : "2.0.1"
+    "fb-watchman" : "2.0.1",
+    "wTools" : "gamma",
+    "wConsequence" : "gamma",
+    "wCopyable" : "gamma"
   },
-  "devDependencies" : { "eslint" : "7.1.0", "wTesting" : "" },
+  "devDependencies" : { "eslint" : "7.1.0", "wTesting" : "gamma" },
   "keywords" : [ "wTools", "wFilesWatcher", "fileswatcher" ]
 }
