@@ -1,5 +1,5 @@
 
-var _ = require( '../..' )
+var _ = require( 'wfileswatcher' )
 
 let ready = _.files.watcher.fs.watch({ [ __filename ] : null });
 let fsWatcher = null;
