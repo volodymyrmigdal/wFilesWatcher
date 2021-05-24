@@ -65,8 +65,8 @@ function unform()
   _.assert( self.watcherArray.length === 0, 'Watchers are not closed.' )
   _.arrayRemoveElementOnceStrictly( _.files.watcher.managerArray, self );
 
-  self.idle.forEach( ( timer ) => timer.cancel() );
-  _.longEmpty( self.idle );
+  self.idleTimers.forEach( ( timer ) => timer.cancel() )
+  _.longEmpty( self.idleTimers );
 
   /* end */
 
@@ -95,10 +95,22 @@ function add( watcher )
   _.assert( !_.longHas( self.watcherArray, watcher ) );
   _.arrayAppendElement( self.watcherArray, watcher );
 
-  watcher.on( 'change', () =>
+  watcher.on( 'change', self, () =>
   {
-    self.lastEventTime = _.time.now();
-  })
+    self.idleTimers.forEach( ( timer ) => timer.cancel() )
+    _.longEmpty( self.idleTimers );
+
+    self.idleTimerDescriptors.forEach( ( descriptor ) =>
+    {
+      let timer = _.time.begin( descriptor.time, () =>
+      {
+        _.arrayRemoveElementOnceStrictly( self.idleTimerDescriptors, descriptor )
+        _.arrayRemoveElementOnceStrictly( self.idleTimers, timer )
+        descriptor.cb();
+      })
+      self.idleTimers.push( timer );
+    })
+  });
 }
 
 //
@@ -109,6 +121,8 @@ function remove( watcher )
   _.assert( watcher instanceof _.files.watcher.abstract );
   _.assert( _.longHas( self.watcherArray, watcher ) );
   _.arrayRemoveElement( self.watcherArray, watcher );
+  watcher.off( 'change', self );
+
 }
 
 //
@@ -140,18 +154,18 @@ function onIdle( time, cb )
 
   _.assert( arguments.length === 2 );
   _.assert( _.numberIs( time ) );
-  _.assert( _.routinesIs( cb ) );
+  _.assert( _.routineIs( cb ) );
 
-  let lastEventTime = self.lastEventTime;
+  let descriptor = { time, cb };
+  self.idleTimerDescriptors.push( descriptor );
 
-  let timer = _.time.periodic( time, () =>
+  let timer = _.time.begin( descriptor.time, () =>
   {
-    if( lastEventTime === self.lastEventTime )
-    cb();
-    lastEventTime = self.lastEventTime;
-    return true;
+    _.arrayRemoveElementOnceStrictly( self.idleTimerDescriptors, descriptor )
+    _.arrayRemoveElementOnceStrictly( self.idleTimers, timer )
+    descriptor.cb();
   })
-  self.idle.push( timer );
+  self.idleTimers.push( timer );
 }
 
 //
@@ -176,7 +190,8 @@ let Restricts =
 {
   watcherArray : _.define.own( [] ),
   lastEventTime : null,
-  idle :  _.define.own( [] ),
+  idleTimers : _.define.own( [] ),
+  idleTimerDescriptors : _.define.own( [] ),
 
   formed : 0
 }

@@ -198,7 +198,7 @@ function watch( filePath, o )
 
   _.routine.options_( watch, o );
 
-  let watcher = new Self({ filePath, recursive : o.recursive });
+  let watcher = new Self({ filePath, recursive : o.recursive, manager : o.manager });
 
   if( o.enabled )
   return watcher.resume();
@@ -209,7 +209,8 @@ function watch( filePath, o )
 watch.defaults =
 {
   enabled : 1,
-  recursive : 0
+  recursive : 0,
+  manager : null
 }
 
 //
