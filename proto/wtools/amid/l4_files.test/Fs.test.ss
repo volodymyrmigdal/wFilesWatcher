@@ -134,6 +134,7 @@ async function directory( test )
   test.case = 'create'
   var filePath = a.abs( 'dir' );
   var ready = _.Consequence();
+  a.reflect();
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
   watcher.on( 'change', ( e ) => ready.take( e ) );
@@ -153,6 +154,7 @@ async function directory( test )
   var filePath = a.abs( 'dira' );
   var filePath2 = a.abs( 'dirb' );
   var ready = _.Consequence();
+  a.reflect();
   a.fileProvider.dirMake( filePath )
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
   watcher.on( 'change', ( e ) => ready.take( e ) )
@@ -171,6 +173,7 @@ async function directory( test )
   test.case = 'delete'
   var filePath = a.abs( 'dirToDelete' );
   var ready = _.Consequence();
+  a.reflect();
   a.fileProvider.dirMake( filePath )
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
   watcher.on( 'change', ( e ) => ready.take( e ) )
