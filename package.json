@@ -12,7 +12,7 @@
     { "name" : "Volodymyr M.", "email" : "volodymyr.migdal@gmail.com" }
   ],
   "main" : "proto/node_modules/wFilesWatcher",
-  "files" : [ "proto/wtools/amid/l4_files/l7_watcher", "out", "proto/node_modules" ],
+  "files" : [ "proto/wtools/amid/l4_files/l7_watcher", "out", "proto/node_modules/Tools", "proto/node_modules/wFilesWatcher" ],
   "scripts" : { "test" : "wtest .run 'proto/**' rapidity:-1", "docgen" : "wdocgen proto" },
   "repository" :
   {
