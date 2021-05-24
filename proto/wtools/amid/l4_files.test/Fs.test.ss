@@ -127,64 +127,83 @@ async function terminalFile( test )
 
 async function directory( test )
 {
+  let context = this;
   let a = test.assetFor( false );
 
   /* - */
 
   test.case = 'create'
-  var filePath = a.abs( 'dir' );
-  var ready = _.Consequence();
-  a.reflect();
+  var filePath = a.abs( 'create/dir' );
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
-  watcher.on( 'change', ( e ) => ready.take( e ) );
+  var events = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    events.push( e );
+  })
   a.fileProvider.dirMake( filePath );
-  var e = await ready;
+  await _.time.out( context.t3 );
+  test.identical( events.length, 1 );
   var exp =
   [{
     filePath : 'dir',
     watchPath : a.fileProvider.path.dir( filePath ),
   }]
-  test.contains( e.files, exp )
+  test.contains( events[ 0 ].files, exp )
   await watcher.close();
 
   /* - */
 
   test.case = 'rename'
-  var filePath = a.abs( 'dira' );
-  var filePath2 = a.abs( 'dirb' );
-  var ready = _.Consequence();
-  a.reflect();
+  var filePath = a.abs( 'rename/dira' );
+  var filePath2 = a.abs( 'rename/dirb' );
   a.fileProvider.dirMake( filePath )
+  await _.time.out( context.t1 );
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
-  watcher.on( 'change', ( e ) => ready.take( e ) )
+  var events = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    events.push( e );
+  })
   a.fileProvider.fileRename( filePath2, filePath );
-  var e = await ready;
+  await _.time.out( context.t3 );
+  test.identical( events.length, 2 );
   var exp =
   [{
     filePath : 'dira',
     watchPath : a.fileProvider.path.dir( filePath ),
   }]
-  test.contains( e.files, exp )
+  test.contains( events[ 0 ].files, exp )
+  var exp =
+  [{
+    filePath : 'dirb',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( events[ 1 ].files, exp )
   await watcher.close();
 
   /* - */
 
   test.case = 'delete'
-  var filePath = a.abs( 'dirToDelete' );
-  var ready = _.Consequence();
+  var filePath = a.abs( 'delete/dir' );
   a.reflect();
   a.fileProvider.dirMake( filePath )
+  await _.time.out( context.t1 );
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
-  watcher.on( 'change', ( e ) => ready.take( e ) )
+  var events = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    events.push( e );
+  })
   a.fileProvider.filesDelete( filePath );
-  var e = await ready;
+  await _.time.out( context.t3 );
+  test.identical( events.length, 1 );
   var exp =
   [{
-    filePath : 'dirToDelete',
+    filePath : 'dir',
     watchPath : a.fileProvider.path.dir( filePath ),
   }]
-  test.contains( e.files, exp )
+  test.contains( events[ 0 ].files, exp )
   await watcher.close();
 
   /* - */
@@ -210,6 +229,8 @@ const Proto =
   {
     suiteTempPath : null,
     assetsOriginalPath : null,
+    t1 : 1000,
+    t3 : 3000
   },
 
   tests :

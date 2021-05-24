@@ -94,14 +94,21 @@ function _watcherRegisterCallbacks( watcher )
 function _unwatch()
 {
   let self = this;
+  let cons = [];
 
   self.watcherArray.forEach( ( descriptor ) =>
   {
+    let con = _.Consequence();
     descriptor.watch.close()
-    descriptor.watch = null;
+    descriptor.watch.on( 'close', () =>
+    {
+      descriptor.watch = null;
+      con.take( null )
+    })
+    cons.push( con );
   });
 
-  return null;
+  return _.Consequence.AndKeep( ... cons );
 }
 
 //
