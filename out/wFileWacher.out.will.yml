@@ -170,12 +170,15 @@ module:
           - ../proto/wtools/amid/l4_files/l7_watcher/l1
           - ../proto/wtools/amid/l4_files/l7_watcher/l1/Namespace.s
           - ../proto/wtools/amid/l4_files/l7_watcher/l2
-          - ../proto/wtools/amid/l4_files/l7_watcher/l2/Abstract.s
+          - ../proto/wtools/amid/l4_files/l7_watcher/l2/WatcherManager.s
           - ../proto/wtools/amid/l4_files/l7_watcher/l3
-          - ../proto/wtools/amid/l4_files/l7_watcher/l3/Fb.ss
-          - ../proto/wtools/amid/l4_files/l7_watcher/l3/Fs.ss
+          - ../proto/wtools/amid/l4_files/l7_watcher/l3/Watcher.s
+          - ../proto/wtools/amid/l4_files/l7_watcher/l4
+          - ../proto/wtools/amid/l4_files/l7_watcher/l4/Fb.ss
+          - ../proto/wtools/amid/l4_files/l7_watcher/l4/Fs.ss
           - ../proto/wtools/amid/l4_files.test
           - ../proto/wtools/amid/l4_files.test/Fs.test.ss
+          - ../proto/wtools/amid/l4_files.test/Manager.test.ss
     submodule:
       wTools:
         path: 'npm:///wTools'
