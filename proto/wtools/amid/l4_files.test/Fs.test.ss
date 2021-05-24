@@ -60,7 +60,7 @@ async function terminalFile( test )
   })
   a.fileProvider.fileWrite( filePath, 'a' );
   await _.time.out( context.t3 );
-  test.identical( events.length, 1 );
+  test.gt( events.length, 1 );
   var exp =
   [{
     filePath : 'file.js',
@@ -68,6 +68,8 @@ async function terminalFile( test )
   }]
   test.contains( events[ 0 ].files, exp )
   await watcher.close();
+  if( process.platform !== 'darwin' )
+  test.contains( events[ 1 ].files, exp )
 
   /* - */
 
@@ -83,7 +85,7 @@ async function terminalFile( test )
   })
   a.fileProvider.fileWrite( filePath, 'ab' );
   await _.time.out( context.t3 );
-  test.identical( events.length, 1 );
+  test.gt( events.length, 1 );
   var exp =
   [{
     filePath : 'file.js',
