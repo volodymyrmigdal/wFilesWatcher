@@ -13,13 +13,25 @@ const _global = _global_;
 const _ = _global_.wTools;
 _.assert( !!_.files.watcher );
 _.assert( !!_.files.watcher.abstract );
-_.files.watcher.fs = _.files.watcher.fs || Object.create( null );
+_.assert( !!_.files.watcher.defaultManager );
+_.assert( !_.files.watcher.fs );
 
 const Fs = require( 'fs' );
 
 // --
 // implementation
 // --
+
+const Parent = _.files.watcher.abstract;
+const Self = WatcherFs;
+function WatcherFs( o )
+{
+  return _.workpiece.construct( Self, this, arguments );
+}
+
+Self.shortName = 'WatcherFs';
+
+//
 
 function _enable()
 {
@@ -85,7 +97,8 @@ function _watcherRegisterCallbacks( watcher )
       reason : null,
       files : [ record ]
     }
-    _.event.eventGive( self.ehandler, { event : 'change', args : [ e ] } );
+    // _.event.eventGive( self.ehandler, { event : 'change', args : [ e ] } );
+    self.eventGive( e );
   });
 }
 
@@ -94,14 +107,21 @@ function _watcherRegisterCallbacks( watcher )
 function _unwatch()
 {
   let self = this;
+  let cons = [];
 
   self.watcherArray.forEach( ( descriptor ) =>
   {
+    let con = _.Consequence();
     descriptor.watch.close()
-    descriptor.watch = null;
+    descriptor.watch.on( 'close', () =>
+    {
+      descriptor.watch = null;
+      con.take( null )
+    })
+    cons.push( con );
   });
 
-  return null;
+  return _.Consequence.AndKeep( ... cons );
 }
 
 //
@@ -168,30 +188,6 @@ function _close()
   return null;
 }
 
-// //
-//
-// let InterfaceMethods =
-// {
-//   _resume,
-//   _pause,
-//   _close,
-// }
-//
-// //
-//
-// let InterfaceFields =
-// {
-//   watcherArray : []
-// }
-//
-// //
-//
-// let Interface =
-// {
-//   ... InterfaceFields,
-//   ... InterfaceMethods
-// }
-
 //
 
 function watch( filePath, o )
@@ -202,44 +198,66 @@ function watch( filePath, o )
 
   _.routine.options_( watch, o );
 
-  let o2 = Object.create( _.files.watcher.abstract );
-
-  _.arrayAppendElementOnceStrictly( _.files.watcher.watcherArray, o2 );
-
-  _.props.extend( o2, o )
-
-  o2.filePath = _.path.mapsPair( null, filePath );
-  o2.recursive = o.recursive;
+  let watcher = new Self({ filePath, recursive : o.recursive, manager : o.manager });
 
   if( o.enabled )
-  {
-    o2.enabled = false;
-    return o2.resume();
-  }
+  return watcher.resume();
 
-  return o2;
+  return watcher;
 }
 
 watch.defaults =
 {
   enabled : 1,
   recursive : 0,
-  watcherArray : null,
-  _resume,
-  _pause,
-  _close,
+  manager : null
 }
 
-// --
-// extension
-// --
+//
+
+let Composes =
+{
+  recursive : 0
+}
+
+//
+
+let Statics =
+{
+  watch
+}
+
+//
+
+let Restricts =
+{
+  watcherArray : null
+}
+
+//
 
 let Extension =
 {
-  watch,
+  _resume,
+  _pause,
+  _close,
+
+  Composes,
+  Statics,
+  Restricts
 }
 
-Object.assign( _.files.watcher.fs, Extension );
+_.classDeclare
+({
+  cls : Self,
+  parent : Parent,
+  extend : Extension,
+});
+
+//
+
 _.assert( _.files.watcher.default === _.files.watcher.fb );
+
+_.files.watcher.fs = Self;
 
 })();
