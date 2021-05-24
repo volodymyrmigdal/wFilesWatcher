@@ -18,7 +18,8 @@ _.files.watcher = _.files.watcher || Object.create( null );
 function close()
 {
   let self = this;
-  let cons = self.watcherArray.map( ( watcher ) => watcher.close() );
+  _.assert( self.defaultManager === null || _.longHas( self.managerArray, self.defaultManager ) )
+  let cons = self.managerArray.map( ( manager ) => manager.close() );
   return _.Consequence.AndKeep( ... cons );
 }
 
@@ -32,7 +33,8 @@ let Extension =
   close,
 
   default : null,
-  watcherArray : [],
+  defaultManager : null,
+  managerArray : [],
 
 }
 
