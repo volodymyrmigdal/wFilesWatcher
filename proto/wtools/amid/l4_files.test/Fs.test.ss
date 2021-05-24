@@ -60,7 +60,7 @@ async function terminalFile( test )
   })
   a.fileProvider.fileWrite( filePath, 'a' );
   await _.time.out( context.t3 );
-  test.gt( events.length, 1 );
+  test.ge( events.length, 1 );
   var exp =
   [{
     filePath : 'file.js',
@@ -85,7 +85,7 @@ async function terminalFile( test )
   })
   a.fileProvider.fileWrite( filePath, 'ab' );
   await _.time.out( context.t3 );
-  test.gt( events.length, 1 );
+  test.ge( events.length, 1 );
   var exp =
   [{
     filePath : 'file.js',
