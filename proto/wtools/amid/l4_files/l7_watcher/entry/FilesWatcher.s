@@ -5,7 +5,7 @@
 
 if( typeof module !== 'undefined' )
 {
-  require( '../include/Top.s' );
+  const _ = require( '../include/Top.s' );
   module[ 'exports' ] = _;
 }
 
