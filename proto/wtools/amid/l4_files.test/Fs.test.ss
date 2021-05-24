@@ -43,24 +43,30 @@ function onSuiteEnd()
 
 async function terminalFile( test )
 {
+  let context = this;
   let a = test.assetFor( false );
 
   /* - */
 
   test.case = 'create'
   var filePath = a.abs( 'file.js' );
-  var ready = _.Consequence();
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
+  await _.time.out( context.t1 );
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
-  watcher.on( 'change', ( e ) => ready.take( e ) );
+  var events = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    events.push( e );
+  })
   a.fileProvider.fileWrite( filePath, 'a' );
-  var e = await ready;
+  await _.time.out( context.t3 );
+  test.identical( events.length, 1 );
   var exp =
   [{
     filePath : 'file.js',
     watchPath : a.fileProvider.path.dir( filePath ),
   }]
-  test.contains( e.files, exp )
+  test.contains( events[ 0 ].files, exp )
   await watcher.close();
 
   /* - */
@@ -68,17 +74,22 @@ async function terminalFile( test )
   test.case = 'change'
   var filePath = a.abs( 'file.js' );
   a.fileProvider.fileWrite( filePath, 'a' );
-  var ready = _.Consequence();
+  await _.time.out( context.t1 );
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
-  watcher.on( 'change', ( e ) => ready.take( e ) );
+  var events = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    events.push( e );
+  })
   a.fileProvider.fileWrite( filePath, 'ab' );
-  var e = await ready;
+  await _.time.out( context.t3 );
+  test.identical( events.length, 1 );
   var exp =
   [{
     filePath : 'file.js',
     watchPath : a.fileProvider.path.dir( filePath ),
   }]
-  test.contains( e.files, exp )
+  test.contains( events[ 0 ].files, exp )
   await watcher.close();
 
   /* - */
@@ -87,17 +98,28 @@ async function terminalFile( test )
   var filePath = a.abs( 'file.js' );
   var filePath2 = a.abs( 'file.x' );
   a.fileProvider.fileWrite( filePath, 'a' );
-  var ready = _.Consequence();
+  await _.time.out( context.t1 );
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
-  watcher.on( 'change', ( e ) => ready.take( e ) )
+  var events = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    events.push( e );
+  })
   a.fileProvider.fileRename( filePath2, filePath );
-  var e = await ready;
+  await _.time.out( context.t3 );
+  test.identical( events.length, 2 );
   var exp =
   [{
     filePath : 'file.js',
     watchPath : a.fileProvider.path.dir( filePath ),
   }]
-  test.contains( e.files, exp )
+  test.contains( events[ 0 ].files, exp )
+  var exp =
+  [{
+    filePath : 'file.x',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( events[ 1 ].files, exp )
   await watcher.close();
 
   /* - */
@@ -105,17 +127,22 @@ async function terminalFile( test )
   test.case = 'delete'
   var filePath = a.abs( 'file.js' );
   a.fileProvider.fileWrite( filePath, 'a' );
-  var ready = _.Consequence();
+  await _.time.out( context.t1 );
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
-  watcher.on( 'change', ( e ) => ready.take( e ) )
+  var events = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    events.push( e );
+  })
   a.fileProvider.filesDelete( filePath );
-  var e = await ready;
+  await _.time.out( context.t3 );
+  test.identical( events.length, 1 );
   var exp =
   [{
     filePath : 'file.js',
     watchPath : a.fileProvider.path.dir( filePath ),
   }]
-  test.contains( e.files, exp )
+  test.contains( events[ 0 ].files, exp )
   await watcher.close();
 
   /* - */
