@@ -169,7 +169,7 @@ async function directory( test )
   /* - */
 
   test.case = 'delete'
-  var filePath = a.abs( 'dir' );
+  var filePath = a.abs( 'dirToDelete' );
   var ready = _.Consequence();
   a.fileProvider.dirMake( filePath )
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
@@ -178,7 +178,7 @@ async function directory( test )
   var e = await ready;
   var exp =
   [{
-    filePath : 'dir',
+    filePath : 'dirToDelete',
     watchPath : a.fileProvider.path.dir( filePath ),
   }]
   test.contains( e.files, exp )
