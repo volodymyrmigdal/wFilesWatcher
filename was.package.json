@@ -1,6 +1,6 @@
 {
   "name" : "wfileswatcher",
-  "version" : "0.1.8",
+  "version" : "0.1.9",
   "engine" : "node >= 10.0.0",
   "enabled" : 1,
   "description" : "Watch changes in the files tree of the fyles system",
