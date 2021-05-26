@@ -208,7 +208,8 @@ let Restricts =
 
 let Events =
 {
-  'change' : 'change'
+  'change' : 'change',
+  'error' : 'error',
 }
 
 //
