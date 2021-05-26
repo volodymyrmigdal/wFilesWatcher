@@ -100,6 +100,17 @@ function _watcherRegisterCallbacks( watcher )
     // _.event.eventGive( self.ehandler, { event : 'change', args : [ e ] } );
     self.eventGive( e );
   });
+  
+  watcher.on( 'error', function( err ) 
+  {
+    let e =
+    {
+      kind : 'error',
+      watcher : self,
+      err
+    }
+    self.eventGive( e );
+  })
 }
 
 //
