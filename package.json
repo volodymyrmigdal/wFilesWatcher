@@ -1,6 +1,6 @@
 {
   "name" : "wfileswatcher",
-  "version" : "0.1.4",
+  "version" : "0.1.5",
   "engine" : "node >= 10.0.0",
   "enabled" : 1,
   "description" : "Watch changes in the files tree of the fyles system",
@@ -25,11 +25,11 @@
   },
   "dependencies" :
   {
-    "fb-watchman" : "2.0.1",
-    "wTools" : "gamma",
-    "wConsequence" : "gamma",
-    "wCopyable" : "gamma"
+    "wTools" : "",
+    "wConsequence" : "",
+    "wCopyable" : "",
+    "fb-watchman" : "2.0.1"
   },
-  "devDependencies" : { "eslint" : "7.1.0", "wTesting" : "gamma" },
+  "devDependencies" : { "eslint" : "7.1.0", "wTesting" : "" },
   "keywords" : [ "wTools", "wFilesWatcher", "fileswatcher" ]
 }
