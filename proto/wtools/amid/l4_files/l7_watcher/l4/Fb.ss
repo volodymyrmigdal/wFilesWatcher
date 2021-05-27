@@ -13,13 +13,24 @@ const _global = _global_;
 const _ = _global_.wTools;
 _.assert( !!_.files.watcher );
 _.assert( !!_.files.watcher.abstract );
-_.files.watcher.fb = _.files.watcher.fb || Object.create( null );
+_.assert( !_.files.watcher.fb );
 
 const Watchman = require( 'fb-watchman' );
 
 // --
 // implementation
 // --
+
+const Parent = _.files.watcher.abstract;
+const Self = WatcherFb;
+function WatcherFb( o )
+{
+  return _.workpiece.construct( Self, this, arguments );
+}
+
+Self.shortName = 'WatcherFb';
+
+//
 
 function _enable()
 {
@@ -140,7 +151,7 @@ function _enable()
         files
       }
 
-      _.event.eventGive( self.ehandler, { event : 'change', args : [ e ] } );
+      self.eventGive( e );
     });
 
     return null;
@@ -296,33 +307,6 @@ function _close()
   return ready;
 }
 
-// //
-//
-// let InterfaceMethods =
-// {
-//   _resume,
-//   _pause,
-//   _close,
-// }
-//
-// //
-//
-// let InterfaceFields =
-// {
-//   client : null,
-//
-//   watcherArray : [],
-//   subscriptionMap : Object.create( null )
-// }
-//
-// //
-//
-// let Interface =
-// {
-//   ... InterfaceFields,
-//   ... InterfaceMethods
-// }
-
 //
 
 function watch( filePath, o )
@@ -333,46 +317,69 @@ function watch( filePath, o )
 
   _.routine.options_( watch, o );
 
-  let o2 = Object.create( watcher.abstract );
-
-  _.arrayAppendElementOnceStrictly( watcher.watcherArray, o2 );
-
-  _.props.extend( o2, Interface )
-
-  o2.filePath = _.path.mapsPair( null, filePath );
+  let watcher = new Self({ filePath, manager : o.manager });
 
   if( o.enabled )
-  return o2.resume();
+  return watcher.resume();
 
-  return o2;
+  return watcher;
 }
 
 watch.defaults =
 {
   enabled : 1,
+  manager : null
+}
+
+//
+
+let Composes =
+{
+}
+
+//
+
+let Statics =
+{
+  watch
+}
+
+//
+
+let Restricts =
+{
+  watcherArray : _.define.own([]),
+  subscriptionMap : _.define.own({}),
+
   client : null,
+}
 
-  watcherArray : null,
-  subscriptionMap : null,
+//
 
+let Extension =
+{
   _resume,
   _pause,
   _close,
 
+  Composes,
+  Statics,
+  Restricts
 }
 
-// --
-// extension
-// --
+_.classDeclare
+({
+  cls : Self,
+  parent : Parent,
+  extend : Extension,
+});
 
-let Extension =
-{
-  watch,
-}
+//
 
-Object.assign( _.files.watcher, Extension );
 _.assert( _.files.watcher.default === null );
+_.assert( !_.files.watcher.fb );
 
+_.files.watcher.fb = Self;
 _.files.watcher.default = _.files.watcher.fb;
 
 })();
