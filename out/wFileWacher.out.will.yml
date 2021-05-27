@@ -3,8 +3,8 @@ root:
   - wFileWacher.out
 consistency:
   ../will.yml: &ref_0
-    hash: 5211383e4830cb67e53dd8ad9b2ac462
-    size: 6635
+    hash: 1e699c33997c32126b59bfd2d3d23a41
+    size: 6751
 module:
   wFileWacher.out:
     about:
@@ -190,6 +190,14 @@ module:
         enabled: 0
       wConsequence:
         path: 'npm:///wConsequence'
+        autoExporting: 0
+        enabled: 0
+      wProto:
+        path: 'npm:///wProto'
+        autoExporting: 0
+        enabled: 0
+      wEventHandler:
+        path: 'npm:///wEventHandler'
         autoExporting: 0
         enabled: 0
       fb-watchman:
@@ -936,6 +944,14 @@ module:
         path: 'npm:///wConsequence'
         autoExporting: 0
         enabled: 0
+      wProto:
+        path: 'npm:///wProto'
+        autoExporting: 0
+        enabled: 0
+      wEventHandler:
+        path: 'npm:///wEventHandler'
+        autoExporting: 0
+        enabled: 0
       fb-watchman:
         path: 'npm:///fb-watchman#2.0.1'
         autoExporting: 0
@@ -1478,5 +1494,5 @@ module:
           - 'build::npm'
     consistency:
       ../will.yml:
-        hash: 5211383e4830cb67e53dd8ad9b2ac462
-        size: 6635
+        hash: 1e699c33997c32126b59bfd2d3d23a41
+        size: 6751
