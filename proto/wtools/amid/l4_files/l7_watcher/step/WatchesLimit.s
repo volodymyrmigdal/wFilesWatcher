@@ -5,24 +5,37 @@
 
   const fs = require( 'fs' );
   const cp = require( 'child_process' );
-  const assert = require( 'assert' );
 
   const args = process.argv.slice( 2 );
   const command = args[ 0 ];
 
   if( command === 'get' )
   {
-    if( process.platform === 'linux' )
-    getValueLinux();
-    if( process.platform === 'darwin' )
-    getValueDarwin();
+    getValue();
   }
   else if( command === 'set' )
   {
+    setValue();
+  }
+
+  //
+
+  function getValue()
+  {
     if( process.platform === 'linux' )
-    setValueLinux();
+    return getValueLinux();
     if( process.platform === 'darwin' )
-    setValueDarwin();
+    return getValueDarwin();
+  }
+
+  //
+
+  function setValue( ... args )
+  {
+    if( process.platform === 'linux' )
+    setValueLinux( ...args );
+    if( process.platform === 'darwin' )
+    setValueDarwin( ... args );
   }
 
   //
@@ -53,11 +66,14 @@
 
   //
 
-  function setValueLinux()
+  function setValueLinux( value, permanent )
   {
+    if( value === undefined )
+    value = args[ 1 ];
+    if( permanent === undefined )
+    permanent = Boolean( args[ 2 ] );
+
     const defaultValue = 1048576;
-    let value = args[ 1 ];
-    const permanent = Boolean( args[ 2 ] );
 
     getValueLinux();
 
@@ -88,13 +104,17 @@
 
   //
 
-  function setValueDarwin()
+  function setValueDarwin( maxfiles, maxfilesperproc, permanent )
   {
     getValueDarwin();
 
-    let maxfiles = args[ 1 ];
-    let maxfilesperproc = args[ 2 ];
-    const permanent = Boolean( args[ 3 ] );
+    if( maxfiles === undefined )
+    maxfiles = args[ 1 ];
+    if( maxfilesperproc === undefined )
+    maxfilesperproc = args[ 2 ]
+    if( permanent === undefined )
+    permanent = Boolean( args[ 3 ] );
+
     const defaultMaxfiles = 10485760;
     const defaultMaxfilesperproc = 1048576;
 
@@ -132,6 +152,14 @@
   function exec( command )
   {
     cp.execSync( command, { stdio : 'inherit' } )
+  }
+
+  //
+
+  module.exports =
+  {
+    setValue,
+    getValue
   }
 
 })()
