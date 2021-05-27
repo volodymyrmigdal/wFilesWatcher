@@ -45,40 +45,22 @@ async function watchesLimitThrowing( test )
 {
   /* - */
 
-  if( !_.process.insideTestContainer() || process.platform === 'win32' )
+  if( !_.process.insideTestContainer() || process.platform != 'linux' )
   {
     test.true( true );
     return;
   }
 
-  if( process.platform === 'linux' )
-  {
-    var beforeValue = WatchesLimit.getValue();
-    test.gt( beforeValue, 0 );
-    WatchesLimit.setValue( 0 );
-    var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0 } );
-    await test.shouldThrowErrorAsync( watcher.resume() );
-    WatchesLimit.setValue( beforeValue );
-    var value = WatchesLimit.getValue();
-    test.identical( value, beforeValue );
-    await test.mustNotThrowError( () => watcher.resume() );
-    await watcher.close();
-  }
-  else if( process.platform === 'darwin' )
-  {
-    var beforeValue = WatchesLimit.getValue();
-    test.gt( beforeValue.current_maxfiles, 0 );
-    test.gt( beforeValue.current_maxfilesperproc, 0 );
-    WatchesLimit.setValue( 0, 0 );
-    var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0 } );
-    await test.shouldThrowErrorAsync( watcher.resume() );
-    WatchesLimit.setValue( current_maxfiles, current_maxfilesperproc );
-    var value = WatchesLimit.getValue();
-    test.identical( value.current_maxfiles, beforeValue.current_maxfiles );
-    test.identical( value.current_maxfilesperproc, beforeValue.current_maxfilesperproc );
-    await test.mustNotThrowError( () => watcher.resume() );
-    await watcher.close();
-  }
+  var beforeValue = WatchesLimit.getValue();
+  test.gt( beforeValue, 0 );
+  WatchesLimit.setValue( 0 );
+  var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0 } );
+  await test.shouldThrowErrorAsync( watcher.resume() );
+  WatchesLimit.setValue( beforeValue );
+  var value = WatchesLimit.getValue();
+  test.identical( value, beforeValue );
+  await test.mustNotThrowError( () => watcher.resume() );
+  await watcher.close();
 
   /* - */
 

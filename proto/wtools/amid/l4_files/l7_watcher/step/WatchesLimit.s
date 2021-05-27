@@ -51,10 +51,10 @@
 
   function getValueDarwin()
   {
-    let maxfiles = exec( ` sysctl kern.maxfiles` ).toString();
+    let maxfiles = execCollectingOutput( ` sysctl kern.maxfiles` ).toString();
     maxfiles = maxfiles.split( /\s+/ )[ 1 ];
     maxfiles = Number( maxfiles );
-    let maxfilesperproc = exec( ` sysctl kern.maxfilesperproc` ).toString();
+    let maxfilesperproc = execCollectingOutput( ` sysctl kern.maxfilesperproc` ).toString();
     maxfilesperproc = maxfilesperproc.split( /\s+/ )[ 1 ];
     maxfilesperproc = Number( maxfilesperproc );
 
@@ -86,6 +86,9 @@
 
     if( permanent )
     {
+      if( value < 8192 )
+      throw `Not safe to set ${value} permanently.`
+
       exec( `sudo sh -c "echo fs.inotify.max_user_watches=${value} >> /etc/sysctl.conf"` )
       console.warn( 'The new value is permanent.' );
       console.warn( 'To disable it edit "fs.inotify.max_user_watches" line in your /etc/sysctl.conf file' );
@@ -104,28 +107,30 @@
 
   //
 
-  function setValueDarwin( maxfiles, maxfilesperproc, permanent )
+  // function setValueDarwin( maxfiles, maxfilesperproc, permanent )
+  function setValueDarwin()
   {
     getValueDarwin();
 
-    if( maxfiles === undefined )
-    maxfiles = args[ 1 ];
-    if( maxfilesperproc === undefined )
-    maxfilesperproc = args[ 2 ]
-    if( permanent === undefined )
-    permanent = Boolean( args[ 3 ] );
+    // if( maxfiles === undefined )
+    // maxfiles = args[ 1 ];
+    // if( maxfilesperproc === undefined )
+    // maxfilesperproc = args[ 2 ]
+    // if( permanent === undefined )
+    // permanent = Boolean( args[ 3 ] );
 
     const defaultMaxfiles = 10485760;
     const defaultMaxfilesperproc = 1048576;
 
-    maxfiles = Number.parseInt( maxfiles );
-    maxfilesperproc = Number.parseInt( maxfilesperproc );
+    // maxfiles = Number.parseInt( maxfiles );
+    // maxfilesperproc = Number.parseInt( maxfilesperproc );
 
-    if( !Number.isInteger( maxfiles ) )
-    maxfiles = defaultMaxfiles;
+    // if( !Number.isInteger( maxfiles ) )
+    let maxfiles = defaultMaxfiles;
 
-    if( !Number.isInteger( maxfilesperproc ) )
-    maxfilesperproc = defaultMaxfilesperproc;
+
+    // if( !Number.isInteger( maxfilesperproc ) )
+    let maxfilesperproc = defaultMaxfilesperproc;
 
     console.log( `Changing maxfiles to ${maxfiles}` );
     console.log( `Changing maxfilesperproc to ${maxfilesperproc}` );
@@ -151,7 +156,14 @@
 
   function exec( command )
   {
-    cp.execSync( command, { stdio : 'inherit' } )
+    return cp.execSync( command, { stdio : 'inherit' } )
+  }
+
+  //
+
+  function execCollectingOutput( command )
+  {
+    return cp.execSync( command )
   }
 
   //
