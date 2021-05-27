@@ -43,6 +43,10 @@ function onSuiteEnd()
 
 async function watchesLimitThrowing( test )
 {
+  let context = this;
+  let a = test.assetFor( false );
+  let rootDir = a.abs( 'root' );
+
   /* - */
 
   if( !_.process.insideTestContainer() || process.platform != 'linux' )
@@ -51,21 +55,33 @@ async function watchesLimitThrowing( test )
     return;
   }
 
-  var beforeValue = WatchesLimit.getValue();
-  test.gt( beforeValue, 0 );
-  WatchesLimit.setValue( 0 );
-  var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0 } );
-  await test.shouldThrowErrorAsync( watcher.resume() );
-  WatchesLimit.setValue( beforeValue );
-  var value = WatchesLimit.getValue();
-  test.identical( value, beforeValue );
-  await test.mustNotThrowError( () => watcher.resume() );
-  await watcher.close();
+  if( process.platform === 'linux' )
+  {
+    var value = WatchesLimit.getValue();
+    generateFiles( value );
+    var watcher = _.files.watcher.fs.watch( rootDir, { enabled : 0 } );
+    await test.shouldThrowErrorAsync( watcher.resume() );
+    WatchesLimit.setValue( false );
+    await test.mustNotThrowError( () => watcher.resume() );
+    await watcher.close();
+  }
 
   /* - */
 
   return null;
+
+  function generateFiles( nfiles )
+  {
+    for( let i = 0; i < nfiles; i++ )
+    {
+      let filePath = a.fileProvider.path.join( rootDir, i.toString() );
+      a.fileProvider.fileWrite( filePath, filePath )
+    }
+  }
 }
+
+watchesLimitThrowing.timeOut = 120000;
+watchesLimitThrowing.rapidity = -2;
 
 // --
 // declare

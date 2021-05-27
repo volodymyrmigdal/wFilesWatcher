@@ -8,15 +8,12 @@
 
   const args = process.argv.slice( 2 );
   const command = args[ 0 ];
+  const permanent = args[ 1 ];
 
   if( command === 'get' )
-  {
-    getValue();
-  }
+  getValue();
   else if( command === 'set' )
-  {
-    setValue();
-  }
+  setValue( permanent );
 
   //
 
@@ -30,12 +27,16 @@
 
   //
 
-  function setValue( ... args )
+  function setValue( permanent )
   {
+    if( permanent === undefined )
+    permanent = true;
+    permanent = !!permanent;
+
     if( process.platform === 'linux' )
-    setValueLinux( ...args );
+    setValueLinux( permanent );
     if( process.platform === 'darwin' )
-    setValueDarwin( ... args );
+    setValueDarwin( permanent );
   }
 
   //
@@ -66,29 +67,19 @@
 
   //
 
-  function setValueLinux( value, permanent )
+  function setValueLinux( permanent )
   {
-    if( value === undefined )
-    value = args[ 1 ];
-    if( permanent === undefined )
-    permanent = Boolean( args[ 2 ] );
+    let current = getValueLinux();
 
-    const defaultValue = 1048576;
+    let value = 1048576;
 
-    getValueLinux();
-
-    value = Number.parseInt( value );
-
-    if( !Number.isInteger( value ) )
-    value = defaultValue;
+    if( current >= value )
+    return;
 
     console.log( `Changing max_user_watches to ${value}` );
 
     if( permanent )
     {
-      if( value < 8192 )
-      throw `Not safe to set ${value} permanently.`
-
       exec( `sudo sh -c "echo fs.inotify.max_user_watches=${value} >> /etc/sysctl.conf"` )
       console.warn( 'The new value is permanent.' );
       console.warn( 'To disable it edit "fs.inotify.max_user_watches" line in your /etc/sysctl.conf file' );
@@ -107,30 +98,15 @@
 
   //
 
-  // function setValueDarwin( maxfiles, maxfilesperproc, permanent )
-  function setValueDarwin()
+  function setValueDarwin( permanent )
   {
-    getValueDarwin();
+    var current = getValueDarwin();
 
-    // if( maxfiles === undefined )
-    // maxfiles = args[ 1 ];
-    // if( maxfilesperproc === undefined )
-    // maxfilesperproc = args[ 2 ]
-    // if( permanent === undefined )
-    // permanent = Boolean( args[ 3 ] );
+    let maxfiles = 10485760;
+    let maxfilesperproc = 10485760;
 
-    const defaultMaxfiles = 10485760;
-    const defaultMaxfilesperproc = 1048576;
-
-    // maxfiles = Number.parseInt( maxfiles );
-    // maxfilesperproc = Number.parseInt( maxfilesperproc );
-
-    // if( !Number.isInteger( maxfiles ) )
-    let maxfiles = defaultMaxfiles;
-
-
-    // if( !Number.isInteger( maxfilesperproc ) )
-    let maxfilesperproc = defaultMaxfilesperproc;
+    if( current.current_maxfiles >= maxfiles && current.current_maxfilesperproc >= maxfilesperproc )
+    return;
 
     console.log( `Changing maxfiles to ${maxfiles}` );
     console.log( `Changing maxfilesperproc to ${maxfilesperproc}` );
