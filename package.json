@@ -1,6 +1,6 @@
 {
   "name" : "wfileswatcher",
-  "version" : "0.1.12",
+  "version" : "0.1.13",
   "engine" : "node >= 10.0.0",
   "enabled" : 1,
   "description" : "Watch changes in the files tree of the fyles system",
@@ -13,7 +13,13 @@
   ],
   "main" : "proto/node_modules/wFilesWatcher",
   "files" : [ "proto/wtools/amid/l4_files/l7_watcher", "out", "proto/node_modules/Tools", "proto/node_modules/wFilesWatcher" ],
-  "scripts" : { "test" : "wtest .run 'proto/**' rapidity:-1", "docgen" : "wdocgen proto" },
+  "scripts" :
+  {
+    "test" : "wtest .run 'proto/**' rapidity:-1",
+    "docgen" : "wdocgen proto",
+    "watches.limit.get" : "node proto/wtools/amid/l4_files/l7_watcher/step/WatchesLimit.s get",
+    "watches.limit.set" : "node proto/wtools/amid/l4_files/l7_watcher/step/WatchesLimit.s set"
+  },
   "repository" :
   {
     "type" : "git",

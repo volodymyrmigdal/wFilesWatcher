@@ -3,8 +3,8 @@ root:
   - wFileWacher.out
 consistency:
   ../will.yml: &ref_0
-    hash: 1e699c33997c32126b59bfd2d3d23a41
-    size: 6751
+    hash: 11ff3f8b00131c8a3fedf91dd31aeecb
+    size: 6931
 module:
   wFileWacher.out:
     about:
@@ -30,6 +30,8 @@ module:
       npm.scripts: &ref_4
         test: 'wtest .run ''proto/**'' rapidity:-1'
         docgen: wdocgen .build proto
+        watches.limit.get: node proto/wtools/amid/l4_files/l7_watcher/step/WatchesLimit.s get
+        watches.limit.set: node proto/wtools/amid/l4_files/l7_watcher/step/WatchesLimit.s set
     path:
       module.willfiles:
         criterion:
@@ -176,9 +178,12 @@ module:
           - ../proto/wtools/amid/l4_files/l7_watcher/l4
           - ../proto/wtools/amid/l4_files/l7_watcher/l4/Fb.ss
           - ../proto/wtools/amid/l4_files/l7_watcher/l4/Fs.ss
+          - ../proto/wtools/amid/l4_files/l7_watcher/step
+          - ../proto/wtools/amid/l4_files/l7_watcher/step/WatchesLimit.s
           - ../proto/wtools/amid/l4_files.test
           - ../proto/wtools/amid/l4_files.test/Fs.test.ss
           - ../proto/wtools/amid/l4_files.test/Manager.test.ss
+          - ../proto/wtools/amid/l4_files.test/WatchesLimit.test.ss
     submodule:
       wTools:
         path: 'npm:///wTools'
@@ -1494,5 +1499,5 @@ module:
           - 'build::npm'
     consistency:
       ../will.yml:
-        hash: 1e699c33997c32126b59bfd2d3d23a41
-        size: 6751
+        hash: 11ff3f8b00131c8a3fedf91dd31aeecb
+        size: 6931
