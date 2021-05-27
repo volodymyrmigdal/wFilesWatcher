@@ -299,6 +299,12 @@ submodule:
   wConsequence:
     path: 'npm:///wConsequence'
     enabled: 0
+  wProto:
+    path: 'npm:///wProto'
+    enabled: 0
+  wEventHandler:
+    path: 'npm:///wEventHandler'
+    enabled: 0
   fb-watchman:
     path: 'npm:///fb-watchman#2.0.1'
     enabled: 0
