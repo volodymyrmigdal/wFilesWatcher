@@ -54,14 +54,14 @@ async function onIdle( test )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
-  var counter = 0;
-  manager.onIdle( 1000, () =>
+  var onIdleReady = _.Consequence();
+  manager.onIdle( context.t1, () =>
   {
-    counter += 1;
+    onIdleReady.take( null );
   })
-  await _.time.out( context.t3 );
-  test.identical( counter, 1 );
+  await onIdleReady;
   await watcher.close();
+  test.identical( onIdleReady.resourcesCount(), 0 );
   manager.finit();
 
   /* - */
@@ -72,15 +72,15 @@ async function onIdle( test )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
-  var counter = 0;
-  manager.onIdle( 1000, () =>
+  var onIdleReady = _.Consequence();
+  manager.onIdle( context.t1, () =>
   {
-    counter += 1;
+    onIdleReady.take( null );
   })
   a.fileProvider.fileWrite( filePath, filePath );
-  await _.time.out( context.t3 );
-  test.identical( counter, 1 );
+  await onIdleReady;
   await watcher.close();
+  test.identical( onIdleReady.resourcesCount(), 0 );
   manager.finit();
 
   /* - */
@@ -91,38 +91,38 @@ async function onIdle( test )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
-  var counter = 0;
-  manager.onIdle( 1000, () =>
+  var onIdleReady = _.Consequence();
+  manager.onIdle( context.t1, () =>
   {
-    counter += 1;
+    onIdleReady.take( null );
   })
   a.fileProvider.fileWrite( filePath, filePath + 1 );
-  await _.time.out( 500 );
+  await _.time.out( context.t1 );
   a.fileProvider.fileWrite( filePath, filePath + 2 );
-  await _.time.out( context.t3 );
-  test.identical( counter, 1 );
+  await onIdleReady;
   await watcher.close();
+  test.identical( onIdleReady.resourcesCount(), 0 );
   manager.finit();
 
   /* */
 
-  test.case = 'two changes, second change after idle'
+  test.case = 'two changes, second change after delay'
   var filePath = a.abs( 'file' );
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
-  var counter = 0;
-  manager.onIdle( context.t3, () =>
+  var onIdleReady = _.Consequence();
+  manager.onIdle( context.t1, () =>
   {
-    counter += 1;
+    onIdleReady.take( null );
   })
   a.fileProvider.fileWrite( filePath, filePath + 1 );
   await _.time.out( context.t3 );
   a.fileProvider.fileWrite( filePath, filePath + 2 );
-  await _.time.out( context.t3 );
-  test.identical( counter, 1 );
+  await onIdleReady;
   await watcher.close();
+  test.identical( onIdleReady.resourcesCount(), 0 );
   manager.finit();
 
   /* - */
@@ -133,19 +133,19 @@ async function onIdle( test )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
-  var counter = 0;
-  manager.onIdle( context.t3, () =>
+  var onIdleReady = _.Consequence();
+  manager.onIdle( context.t1, () =>
   {
-    counter += 1;
+    onIdleReady.take( null );
   })
   a.fileProvider.fileWrite( filePath, filePath + 1 );
   await _.time.out( context.t3 );
   a.fileProvider.fileWrite( filePath, filePath + 2 );
   await _.time.out( context.t3 );
   a.fileProvider.fileWrite( filePath, filePath + 3 );
-  await _.time.out( context.t3 );
-  test.identical( counter, 1 );
+  await onIdleReady;
   await watcher.close();
+  test.identical( onIdleReady.resourcesCount(), 0 );
   manager.finit();
 
   /* - */
@@ -156,10 +156,10 @@ async function onIdle( test )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
-  var counter = 0;
-  manager.onIdle( 1000, () =>
+  var onIdleReady = _.Consequence();
+  manager.onIdle( context.t1, () =>
   {
-    counter += 1;
+    onIdleReady.take( null );
   })
   var cons = [];
   var times = 5;
@@ -173,9 +173,9 @@ async function onIdle( test )
     cons.push( con );
   }
   await _.Consequence.AndKeep( ... cons );
-  await _.time.out( context.t3 );
-  test.identical( counter, 1 );
+  await onIdleReady;
   await watcher.close();
+  test.identical( onIdleReady.resourcesCount(), 0 );
   manager.finit();
 
   /* - */
@@ -186,14 +186,15 @@ async function onIdle( test )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
-  var counter = 0;
-  manager.onIdle( context.t3, () =>
+  var onIdleReady = _.Consequence();
+  manager.onIdle( context.t1, () =>
   {
-    counter += 1;
+    onIdleReady.take( null );
   })
   await _.time.out( context.t3 );
   a.fileProvider.fileWrite( filePath, filePath + 1 );
-  test.identical( counter, 1 );
+  await onIdleReady;
+  test.identical( onIdleReady.resourcesCount(), 0 );
   await watcher.close();
   manager.finit();
 
@@ -211,27 +212,33 @@ async function onIdleMultipleCallbacks( test )
 
   /* - */
 
-  test.case = 'two callback with different timeouts'
+  test.case = 'two idle callbacks'
   var filePath = a.abs( 'file' );
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
-  var counter = [ 0, 0 ]
+  var onIdleReady1 = _.Consequence();
+  var time1,time2,time3
   manager.onIdle( context.t3, () =>
   {
-    counter[ 0 ] += 1;
+    time2 = _.time.now();
+    onIdleReady1.take( null );
   })
-  manager.onIdle( context.t3 * 2, () =>
+  var onIdleReady2 = _.Consequence();
+  manager.onIdle( context.t3, () =>
   {
-    counter[ 1 ] += 1;
+    time3 = _.time.now();
+    onIdleReady2.take( null );
   })
+  time1 = _.time.now();
   a.fileProvider.fileWrite( filePath, filePath + 1 );
-  await _.time.out( context.t1 * 5 );
-  a.fileProvider.fileWrite( filePath, filePath + 2 );
-  await _.time.out( context.t1 * 10 );
-  test.identical( counter, [ 1, 1 ] );
+  await _.Consequence.AndTake( onIdleReady1, onIdleReady2 );
+  test.gt( time2, time1 );
+  test.gt( time3, time1 );
   await watcher.close();
+  test.identical( onIdleReady1.resourcesCount(), 0 );
+  test.identical( onIdleReady2.resourcesCount(), 0 );
   manager.finit();
 
   /* - */
