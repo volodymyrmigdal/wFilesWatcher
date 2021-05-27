@@ -97,11 +97,11 @@ function _watcherRegisterCallbacks( watcher )
       reason : null,
       files : [ record ]
     }
-    // _.event.eventGive( self.ehandler, { event : 'change', args : [ e ] } );
+
     self.eventGive( e );
   });
-  
-  watcher.on( 'error', function( err ) 
+
+  watcher.on( 'error', function( err )
   {
     let e =
     {
