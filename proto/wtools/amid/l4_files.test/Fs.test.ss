@@ -53,23 +53,20 @@ async function terminalFile( test )
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   await _.time.out( context.t1 );
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
-  var events = [];
-  watcher.on( 'change', ( e ) =>
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
   {
-    events.push( e );
+    eventReady.take( e )
   })
   a.fileProvider.fileWrite( filePath, 'a' );
-  await _.time.out( context.t3 );
-  test.ge( events.length, 1 );
+  var e = await eventReady;
   var exp =
   [{
     filePath : 'file.js',
     watchPath : a.fileProvider.path.dir( filePath ),
   }]
-  test.contains( events[ 0 ].files, exp )
+  test.contains( e.files, exp )
   await watcher.close();
-  if( process.platform !== 'darwin' )
-  test.contains( events[ 1 ].files, exp )
 
   /* - */
 
@@ -78,20 +75,19 @@ async function terminalFile( test )
   a.fileProvider.fileWrite( filePath, 'a' );
   await _.time.out( context.t1 );
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
-  var events = [];
-  watcher.on( 'change', ( e ) =>
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
   {
-    events.push( e );
+    eventReady.take( e )
   })
   a.fileProvider.fileWrite( filePath, 'ab' );
-  await _.time.out( context.t3 );
-  test.ge( events.length, 1 );
+  var e = await eventReady;
   var exp =
   [{
     filePath : 'file.js',
     watchPath : a.fileProvider.path.dir( filePath ),
   }]
-  test.contains( events[ 0 ].files, exp )
+  test.contains( e.files, exp )
   await watcher.close();
 
   /* - */
@@ -102,14 +98,16 @@ async function terminalFile( test )
   a.fileProvider.fileWrite( filePath, 'a' );
   await _.time.out( context.t1 );
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
+  var eventReady = _.Consequence();
   var events = [];
   watcher.on( 'change', ( e ) =>
   {
     events.push( e );
+    if( events.length > 1 )
+    eventReady.take( null )
   })
   a.fileProvider.fileRename( filePath2, filePath );
-  await _.time.out( context.t3 );
-  test.identical( events.length, 2 );
+  await eventReady;
   var exp =
   [{
     filePath : 'file.js',
@@ -131,20 +129,19 @@ async function terminalFile( test )
   a.fileProvider.fileWrite( filePath, 'a' );
   await _.time.out( context.t1 );
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
-  var events = [];
-  watcher.on( 'change', ( e ) =>
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
   {
-    events.push( e );
+    eventReady.take( e )
   })
   a.fileProvider.filesDelete( filePath );
-  await _.time.out( context.t3 );
-  test.identical( events.length, 1 );
+  var e = await eventReady;
   var exp =
   [{
     filePath : 'file.js',
     watchPath : a.fileProvider.path.dir( filePath ),
   }]
-  test.contains( events[ 0 ].files, exp )
+  test.contains( e.files, exp )
   await watcher.close();
 
   /* - */
@@ -165,20 +162,19 @@ async function directory( test )
   var filePath = a.abs( 'create/dir' );
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
-  var events = [];
-  watcher.on( 'change', ( e ) =>
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
   {
-    events.push( e );
+    eventReady.take( e )
   })
   a.fileProvider.dirMake( filePath );
-  await _.time.out( context.t3 );
-  test.identical( events.length, 1 );
+  var e = await eventReady;
   var exp =
   [{
     filePath : 'dir',
     watchPath : a.fileProvider.path.dir( filePath ),
   }]
-  test.contains( events[ 0 ].files, exp )
+  test.contains( e.files, exp )
   await watcher.close();
 
   /* - */
@@ -190,13 +186,15 @@ async function directory( test )
   await _.time.out( context.t1 );
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
   var events = [];
+  var eventReady = _.Consequence();
   watcher.on( 'change', ( e ) =>
   {
     events.push( e );
+    if( events.length > 1 )
+    eventReady.take( null )
   })
   a.fileProvider.fileRename( filePath2, filePath );
-  await _.time.out( context.t3 );
-  test.identical( events.length, 2 );
+  await eventReady;
   var exp =
   [{
     filePath : 'dira',
@@ -219,20 +217,19 @@ async function directory( test )
   a.fileProvider.dirMake( filePath )
   await _.time.out( context.t1 );
   var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ) );
-  var events = [];
-  watcher.on( 'change', ( e ) =>
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
   {
-    events.push( e );
+    eventReady.take( e )
   })
   a.fileProvider.filesDelete( filePath );
-  await _.time.out( context.t3 );
-  test.identical( events.length, 1 );
+  var e = await eventReady;
   var exp =
   [{
     filePath : 'dir',
     watchPath : a.fileProvider.path.dir( filePath ),
   }]
-  test.contains( events[ 0 ].files, exp )
+  test.contains( e.files, exp )
   await watcher.close();
 
   /* - */
