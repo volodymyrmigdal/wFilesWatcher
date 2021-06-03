@@ -417,11 +417,10 @@ async function filePathReaddedSame( test )
 
 //
 
-async function filePathReaddedDifferent( test )
+async function filePathReplacedDirByFile( test )
 {
   let context = this;
   let a = test.assetFor( false );
-  let path = a.fileProvider.path;
 
   /* - */
 
@@ -436,15 +435,14 @@ async function filePathReaddedDifferent( test )
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
-    if( files.length );
+    if( files.length > 1 )
     eventReady.take( e );
   })
   a.fileProvider.filesDelete( filePath );
   a.fileProvider.fileWrite( filePath, 'file' );
   test.true( a.fileProvider.fileExists( filePath ) )
   await eventReady;
-  test.identical( files.length, 1 );
-  test.identical( path.name( files[ 0 ].filePath ), 'watchDir' );
+  test.identical( files.length, 2 );
   await watcher.close();
 
   /* - */
@@ -461,22 +459,25 @@ async function filePathReplacedFileByDir( test )
 
   /* - */
 
-  test.case = 'watched file replaced by a directory'
+  test.case = 'watched file replaced by a dir'
   a.reflect();
-  var filePath = a.abs( 'file' );
-  var filePathTemp = a.abs( 'temp' );
+  var filePath = a.abs( 'watchFile' );
   a.fileProvider.fileWrite( filePath, 'file' );
   var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  var files = [];
+  watcher.on( 'change', ( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files );
+    if( files.length > 2 )
     eventReady.take( e );
   })
-  a.fileProvider.fileRename( filePathTemp, filePath );
+  a.fileProvider.fileDelete( filePath );
   a.fileProvider.dirMake( filePath );
   test.true( a.fileProvider.fileExists( filePath ) )
-  await _.time.out( context.t3 );
-  test.identical( eventReady.resourcesCount(), 0 );
+  await eventReady;
+  test.identical( files.length, 3 );
   await watcher.close();
 
   /* - */
@@ -558,9 +559,8 @@ const Proto =
     filePathIsMissing,
     filePathRenamed,
     filePathReaddedSame,
-    filePathReaddedDifferent,
+    filePathReplacedDirByFile,
     filePathReplacedFileByDir,
-    // filePathReplacedDirByFile,
     // filePathReplacedFileByLink,
     // filePathReplacedDirByLink,
     // filePathMultiple,
