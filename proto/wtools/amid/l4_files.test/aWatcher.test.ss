@@ -237,6 +237,233 @@ async function directory( test )
 
 //
 
+async function softLink( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+  let path = a.fileProvider.path;
+
+  /* - */
+
+  test.case = 'create soft link'
+  var filePath = a.abs( 'file.js' );
+  var linkPath = a.abs( 'link.js' );
+  a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
+  a.fileProvider.fileWrite( filePath, 'file' )
+  await _.time.out( context.t1 );
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
+  {
+    eventReady.take( e )
+  })
+  a.fileProvider.softLink( linkPath, filePath );
+  var e = await eventReady;
+  var exp =
+  [{
+    filePath : 'link.js',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( e.files, exp )
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'change'
+  var filePath = a.abs( 'file.js' );
+  var filePath2 = a.abs( 'file.js' );
+  var linkPath = a.abs( 'link.js' );
+  a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
+  a.fileProvider.fileWrite( filePath, 'file' )
+  a.fileProvider.fileWrite( filePath2, 'file2' )
+  a.fileProvider.softLink( linkPath, filePath );
+  await _.time.out( context.t1 );
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
+  {
+    eventReady.take( e )
+  })
+  a.fileProvider.softLink( linkPath, filePath2 );
+  var e = await eventReady;
+  var exp =
+  [{
+    filePath : 'link.js',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( e.files, exp )
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'rename'
+  var filePath = a.abs( 'file.js' );
+  var linkPath = a.abs( 'link.js' );
+  var linkPath2 = a.abs( 'link2.js' );
+  a.fileProvider.fileWrite( filePath, 'a' );
+  a.fileProvider.softLink( linkPath, filePath );
+  await _.time.out( context.t1 );
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
+  var eventReady = _.Consequence();
+  var files = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    files.push( ... e.files );
+    if( files.length > 1 )
+    eventReady.take( null )
+  })
+  a.fileProvider.fileRename( linkPath2, linkPath );
+  await eventReady;
+  var fileNames = files.map( ( file ) => path.fullName( file.filePath ) );
+  var exp = [ 'link.js', 'link2.js' ]
+  test.contains( fileNames.sort(), exp.sort() )
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'delete'
+  var filePath = a.abs( 'file.js' );
+  var linkPath = a.abs( 'link.js' );
+  a.fileProvider.fileWrite( filePath, 'a' );
+  a.fileProvider.softLink( linkPath, filePath );
+  await _.time.out( context.t1 );
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
+  {
+    eventReady.take( e )
+  })
+  a.fileProvider.filesDelete( linkPath );
+  var e = await eventReady;
+  var exp =
+  [{
+    filePath : 'link.js',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( e.files, exp )
+  await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
+async function hardLink( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+  let path = a.fileProvider.path;
+
+  /* - */
+
+  test.case = 'create hard link'
+  var filePath = a.abs( 'file.js' );
+  var linkPath = a.abs( 'link.js' );
+  a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
+  a.fileProvider.fileWrite( filePath, 'file' )
+  await _.time.out( context.t1 );
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
+  {
+    eventReady.take( e )
+  })
+  a.fileProvider.hardLink( linkPath, filePath );
+  var e = await eventReady;
+  var exp =
+  [{
+    filePath : 'link.js',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( e.files, exp )
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'change'
+  var filePath = a.abs( 'file.js' );
+  var filePath2 = a.abs( 'file.js' );
+  var linkPath = a.abs( 'link.js' );
+  a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
+  a.fileProvider.fileWrite( filePath, 'file' )
+  a.fileProvider.fileWrite( filePath2, 'file2' )
+  a.fileProvider.hardLink( linkPath, filePath );
+  await _.time.out( context.t1 );
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
+  {
+    eventReady.take( e )
+  })
+  a.fileProvider.fileDelete( linkPath );
+  a.fileProvider.hardLink( linkPath, filePath2 );
+  var e = await eventReady;
+  var exp =
+  [{
+    filePath : 'link.js',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( e.files, exp )
+  await watcher.close();
+
+  // /* - */
+
+  test.case = 'rename'
+  var filePath = a.abs( 'file.js' );
+  var linkPath = a.abs( 'link.js' );
+  var linkPath2 = a.abs( 'link2.js' );
+  a.fileProvider.fileWrite( filePath, 'a' );
+  a.fileProvider.hardLink( linkPath, filePath );
+  await _.time.out( context.t1 );
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
+  var eventReady = _.Consequence();
+  var files = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    files.push( ... e.files );
+    if( files.length > 1 )
+    eventReady.take( null )
+  })
+  a.fileProvider.fileRename( linkPath2, linkPath );
+  await eventReady;
+  var fileNames = files.map( ( file ) => path.fullName( file.filePath ) );
+  var exp = [ 'link.js', 'link2.js' ]
+  test.contains( fileNames.sort(), exp.sort() )
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'delete'
+  var filePath = a.abs( 'file.js' );
+  var linkPath = a.abs( 'link.js' );
+  a.fileProvider.fileWrite( filePath, 'a' );
+  a.fileProvider.hardLink( linkPath, filePath );
+  await _.time.out( context.t1 );
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
+  {
+    eventReady.take( e )
+  })
+  a.fileProvider.filesDelete( linkPath );
+  var e = await eventReady;
+  var exp =
+  [{
+    filePath : 'link.js',
+    watchPath : a.fileProvider.path.dir( filePath ),
+  }]
+  test.contains( e.files, exp )
+  await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
 async function filePathIsMissing( test )
 {
   let context = this;
@@ -761,6 +988,59 @@ async function filePathComplexTree( test )
 
 //
 
+async function watchFollowingSymlinks( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+  let path = a.fileProvider.path;
+
+  var extract = new _.FileProvider.Extract
+  ({
+    filesTree :
+    {
+      'dir0' :
+      {
+        'dir1' :
+        {
+          'file' : 'file'
+        }
+      }
+    }
+  })
+
+  /* - */
+
+  test.case = 'change nested file'
+  a.reflect();
+  var dstPath = a.abs( 'root' );
+  a.fileProvider.dirMake( dstPath )
+  extract.filesReflectTo( _.fileProvider, dstPath );
+  a.fileProvider.softLink( path.join( dstPath, 'link0' ), path.join( dstPath, 'dir0' ) )
+  a.fileProvider.softLink( path.join( dstPath, 'dir0/link1' ), path.join( dstPath, 'dir0/dir1' ) )
+  var filePathReal = path.join( dstPath, 'dir0/dir1/file' );
+  var filePath = path.join( dstPath, 'link0/link1/file' );
+  console.log( a.fileProvider.pathResolveLinkFull( filePath ) )
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  var files = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files );
+    eventReady.take( e );
+  })
+  a.fileProvider.fileWrite( filePathReal, 'a' );
+  await eventReady;
+  test.identical( files.length, 1 );
+  await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
 async function close( test )
 {
   let context = this;
@@ -829,18 +1109,18 @@ const Proto =
   {
     terminalFile,
     directory,
+    softLink,
+    hardLink,
 
     filePathIsMissing,
     filePathRenamed,
     filePathReaddedSame,
     filePathReplacedDirByFile,
     filePathReplacedFileByDir,
-    // filePathReplacedFileByLink,
-    // filePathReplacedDirByLink,
     filePathMultiple,
     filePathIsLink,
     filePathComplexTree,
-    // watchFollowingSymlinks
+    watchFollowingSymlinks,
 
     close,
   }
