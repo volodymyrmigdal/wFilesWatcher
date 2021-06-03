@@ -436,6 +436,38 @@ async function filePathReaddedDifferent( test )
 
 //
 
+async function filePathReplacedFileByDir( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+
+  /* - */
+
+  test.case = 'watched file replaced by a directory'
+  a.reflect();
+  var filePath = a.abs( 'file' );
+  var filePathTemp = a.abs( 'temp' );
+  a.fileProvider.fileWrite( filePath, 'file' );
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
+  {
+    eventReady.take( e );
+  })
+  a.fileProvider.fileRename( filePathTemp, filePath );
+  a.fileProvider.dirMake( filePath );
+  test.true( a.fileProvider.fileExists( filePath ) )
+  await _.time.out( context.t3 );
+  test.identical( eventReady.resourcesCount(), 0 );
+  await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
 async function close( test )
 {
   let context = this;
@@ -509,7 +541,7 @@ const Proto =
     filePathRenamed,
     filePathReaddedSame,
     filePathReaddedDifferent,
-    // filePathReplacedFileByDir,
+    filePathReplacedFileByDir,
     // filePathReplacedDirByFile,
     // filePathReplacedFileByLink,
     // filePathReplacedDirByLink,
