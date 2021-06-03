@@ -127,6 +127,15 @@ function remove( watcher )
 
 //
 
+function has( watcher )
+{
+  let self = this;
+  _.assert( watcher instanceof _.files.watcher.abstract );
+  return _.longHas( self.watcherArray, watcher );
+}
+
+//
+
 function close()
 {
   let self = this;
@@ -207,6 +216,7 @@ let Extension =
 
   add,
   remove,
+  has,
 
   close,
 

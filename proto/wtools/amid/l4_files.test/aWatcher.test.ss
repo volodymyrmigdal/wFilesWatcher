@@ -235,6 +235,47 @@ async function directory( test )
   return null;
 }
 
+//
+
+async function close( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+
+  /* - */
+
+  test.case = 'no events after close'
+  var filePath = a.abs( 'create/dir' );
+  a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
+  test.true( watcher.manager.has( watcher ) );
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) => eventReady.take( e ) )
+  await watcher.close();
+  a.fileProvider.dirMake( filePath );
+  await _.time.out( context.t3 );
+  test.identical( eventReady.resourcesCount(), 0 );
+  test.true( watcher.closed );
+  test.false( watcher.manager.has( watcher ) );
+
+  /* - */
+
+  test.case = 'call close twice'
+  var filePath = a.abs( 'create/dir' );
+  a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
+  test.true( watcher.manager.has( watcher ) );
+  var eventReady = _.Consequence();
+  await watcher.close();
+  await test.mustNotThrowError( watcher.close() );
+  test.true( watcher.closed );
+  test.false( watcher.manager.has( watcher ) );
+
+  /* - */
+
+  return null;
+}
+
 // --
 // declare
 // --
@@ -263,7 +304,28 @@ const Proto =
   tests :
   {
     terminalFile,
-    directory
+    directory,
+
+    // filePathIsMissing,
+    // filePathRenamed
+    // filePathReaddedSame,
+    // filePathReaddedDifferent,
+    // filePathReplacedFileByDir,
+    // filePathReplacedDirByFile,
+    // filePathReplacedFileByLink,
+    // filePathReplacedDirByLink,
+    // filePathMultiple,
+    // filePathIsSoftLinkToFile,
+    // filePathIsSoftLinkToDir,
+    // filePathIsHardLink,
+    // filePathSingleLevelTree,
+    // filePathMultilevelTree
+    // filePathDeleteAfterStartTerminal,
+    // filePathDeleteAfterStartSimpleTree,
+    // filePathDeleteAfterStartComplexTree,
+    // watchFollowingSymlinks
+
+    close,
   }
 
 }
