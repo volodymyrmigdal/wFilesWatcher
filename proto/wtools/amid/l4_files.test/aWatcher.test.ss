@@ -550,6 +550,217 @@ async function filePathMultiple( test )
 
 //
 
+async function filePathIsLink( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+  let path = a.fileProvider.path;
+
+  /* - */
+
+  test.case = 'soft link to terminal'
+  a.reflect();
+  var filePathReal = a.abs( 'file' );
+  var filePath = a.abs( 'link' );
+  a.fileProvider.fileWrite( filePathReal, 'file' )
+  a.fileProvider.softLink( filePath, filePathReal )
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  var files = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files );
+    eventReady.take( e );
+  })
+  a.fileProvider.fileWrite( filePathReal, 'a' );
+  test.true( a.fileProvider.isSoftLink( filePath ) )
+  await eventReady;
+  test.identical( files.length, 1 );
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'soft link to dir'
+  a.reflect();
+  var filePathReal = a.abs( 'dir' );
+  var filePath = a.abs( 'link' );
+  a.fileProvider.dirMake( filePathReal )
+  a.fileProvider.softLink( filePath, filePathReal )
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  var files = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files );
+    eventReady.take( e );
+  })
+  a.fileProvider.fileWrite( path.join( filePathReal, 'file' ), 'file' );
+  test.true( a.fileProvider.isSoftLink( filePath ) )
+  await eventReady;
+  test.identical( files.length, 1 );
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'hard link'
+  a.reflect();
+  var filePathReal = a.abs( 'file' );
+  var filePath = a.abs( 'link' );
+  a.fileProvider.fileWrite( filePathReal, 'file' )
+  a.fileProvider.hardLink( filePath, filePathReal )
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  var files = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files );
+    eventReady.take( e );
+  })
+  a.fileProvider.fileWrite( filePathReal, 'a' );
+  test.true( a.fileProvider.areHardLinked( filePath, filePathReal ) )
+  await eventReady;
+  test.identical( files.length, 1 );
+  await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
+async function filePathComplexTree( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+  let path = a.fileProvider.path;
+
+  var extract = new _.FileProvider.Extract
+  ({
+    filesTree :
+    {
+      'file0' : 'file0',
+      'dir0' :
+      {
+        'file1' : 'file1',
+        'dir1' :
+        {
+          'file2' : 'file2',
+          'dir2' :
+          {
+            'file3' : 'file3'
+          }
+        }
+      }
+    }
+  })
+
+  /* - */
+
+  test.case = 'change nested file'
+  a.reflect();
+  var filePath = a.abs( 'root' );
+  a.fileProvider.dirMake( filePath )
+  extract.filesReflectTo( _.fileProvider, filePath );
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  var files = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files );
+    eventReady.take( e );
+  })
+  if( process.platform === 'linux' )
+  a.fileProvider.fileWrite( path.join( filePath, 'file0' ), 'a' );
+  else
+  a.fileProvider.fileWrite( path.join( filePath, 'dir0/dir1/dir2/file3' ), 'a' );
+  await eventReady;
+  test.identical( files.length, 1 );
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'delete nested file'
+  a.reflect();
+  var filePath = a.abs( 'root' );
+  a.fileProvider.dirMake( filePath )
+  extract.filesReflectTo( _.fileProvider, filePath );
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  var files = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files );
+    eventReady.take( e );
+  })
+  if( process.platform === 'linux' )
+  a.fileProvider.fileDelete( path.join( filePath, 'file0' ) );
+  else
+  a.fileProvider.fileDelete( path.join( filePath, 'dir0/dir1/dir2/file3' ) );
+  await eventReady;
+  test.identical( files.length, 1 );
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'delete nested dir'
+  a.reflect();
+  var filePath = a.abs( 'root' );
+  a.fileProvider.dirMake( filePath )
+  extract.filesReflectTo( _.fileProvider, filePath );
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  var files = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files );
+    eventReady.take( e );
+  })
+  if( process.platform === 'linux' )
+  a.fileProvider.filesDelete( path.join( filePath, 'dir0' ) );
+  else
+  a.fileProvider.filesDelete( path.join( filePath, 'dir0/dir1/dir2' ) );
+  await eventReady;
+  test.ge( files.length, 1 );
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'remove whole tree'
+  a.reflect();
+  var filePath = a.abs( 'root' );
+  a.fileProvider.dirMake( filePath )
+  extract.filesReflectTo( _.fileProvider, filePath );
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  var files = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files );
+
+    if( ( process.platform === 'linux' && files.length === 3 ) || files.length > 8 )
+    eventReady.take( e );
+  })
+  a.fileProvider.filesDelete( filePath );
+  await eventReady;
+  test.ge( files.length, 3 );
+  test.false( a.fileProvider.fileExists( filePath ) );
+  await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
 async function close( test )
 {
   let context = this;
@@ -627,14 +838,8 @@ const Proto =
     // filePathReplacedFileByLink,
     // filePathReplacedDirByLink,
     filePathMultiple,
-    // filePathIsSoftLinkToFile,
-    // filePathIsSoftLinkToDir,
-    // filePathIsHardLink,
-    // filePathSingleLevelTree,
-    // filePathMultilevelTree
-    // filePathDeleteAfterStartTerminal,
-    // filePathDeleteAfterStartSimpleTree,
-    // filePathDeleteAfterStartComplexTree,
+    filePathIsLink,
+    filePathComplexTree,
     // watchFollowingSymlinks
 
     close,
