@@ -93,6 +93,10 @@ function _watcherRegisterCallbacks( watcher )
   let self = this;
   watcher.on( 'change', function ( type, filename )
   {
+    if( self.filter )
+    if( !self.logic.exec({ onEach : ( e ) => e.test( filename ) }) )
+    return;
+
     let record = Object.create( null );
     record.filePath = filename;
     record.watchPath = watcher.filePath;
@@ -102,13 +106,15 @@ function _watcherRegisterCallbacks( watcher )
 
     let e =
     {
-      kind : 'change',
+      kind : 'file.change',
       watcher : self,
       reason : null,
       files : [ record ]
     }
 
-    self.eventGive( e );
+    // self.eventGive( e );
+    self.manager._onChange( e );
+    self.onChange( e );
   });
 
   watcher.on( 'error', function( err )
@@ -119,9 +125,13 @@ function _watcherRegisterCallbacks( watcher )
       watcher : self,
       err
     }
-    self.eventGive( e );
+    // self.eventGive( e );
+    self.onError( e );
   })
 }
+
+//
+
 
 //
 
@@ -211,15 +221,34 @@ function _close()
 
 //
 
-function watch( filePath, o )
+function watch( filePath, onChange )
 {
   _.assert( arguments.length === 1 || arguments.length === 2 );
 
-  o = o || Object.create( null );
+  let o;
+
+  if( arguments.length === 1 )
+  {
+    o = arguments[ 0 ];
+  }
+  else if( _.routineIs( onChange ) )
+  {
+    o = { filePath, onChange }
+  }
+  else
+  {
+    o = onChange;
+    _.assert( _.object.is( o ) )
+    _.assert( o.filePath === undefined )
+    o.filePath = filePath;
+  }
+
+  _.assert( o.filePath !== undefined );
+  _.assert( _.routineIs( o.onChange ) );
 
   _.routine.options_( watch, o );
 
-  let watcher = new Self({ filePath, recursive : o.recursive, manager : o.manager });
+  let watcher = new Self( _.mapBut_( null, o, { enabled : null } ) );
 
   if( o.enabled )
   return watcher.resume();
@@ -229,9 +258,14 @@ function watch( filePath, o )
 
 watch.defaults =
 {
+  filePath : null,
+  onChange : null,
+  onError : null,
+  filter : null,
   enabled : 1,
   recursive : 0,
-  manager : null
+  manager : null,
+
 }
 
 //

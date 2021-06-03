@@ -280,18 +280,18 @@ async function softLink( test )
   await _.time.out( context.t1 );
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  var files = [];
+  watcher.on( 'change', ( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files )
+    if( files.length > 2 )
     eventReady.take( e )
   })
   a.fileProvider.softLink( linkPath, filePath2 );
-  var e = await eventReady;
-  var exp =
-  [{
-    filePath : 'link.js',
-    watchPath : a.fileProvider.path.dir( filePath ),
-  }]
-  test.contains( e.files, exp )
+  await eventReady;
+  var fileNames = files.map( ( file ) => path.fullName( file.filePath ) )
+  test.true( _.longHas( fileNames, 'link.js' ) )
   await watcher.close();
 
   /* - */

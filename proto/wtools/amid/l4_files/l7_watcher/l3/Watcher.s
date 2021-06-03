@@ -34,7 +34,12 @@ function finit()
 {
   if( this.formed )
   this.unform();
-  return _.Copyable.prototype.finit.apply( this, arguments );
+  _.Copyable.prototype.finit.apply( this, arguments );
+  self.manager.eventGive
+  ({
+    kind : 'watcher.init',
+    watcher : self,
+  })
 }
 
 //
@@ -50,6 +55,12 @@ function init( o )
   self.copy( o );
 
   self.form();
+
+  self.manager.eventGive
+  ({
+    kind : 'watcher.init',
+    watcher : self,
+  })
 }
 
 //
@@ -63,7 +74,7 @@ function unform()
 
   /* begin */
 
-  self.manager.remove( self );
+  self.manager._remove( self );
 
   /* end */
 
@@ -82,9 +93,17 @@ function form()
 
   _.assert( self.manager instanceof _.files.watcher.manager )
 
-  self.manager.add( self );
+  self.manager._add( self );
 
   self.filePath = _.path.mapsPair( null, self.filePath );
+
+  if( self.filter )
+  {
+    self.filter = _.array.as( self.filter );
+    _.assert( _.strsAreAll( self.filter ) );
+    self.filter = self.filter.map( ( e ) => _.path.globShortSplitToRegexp( e ) )
+    self.logic = _.logic.or( self.filter );
+  }
 
   self.formed = 1;
   return self;
@@ -148,7 +167,7 @@ function close()
 
   ready.then( () =>
   {
-    self.manager.remove( self );
+    self.manager._remove( self );
     self.enabled = false;
     self.closed = true;
     return self;
@@ -185,14 +204,17 @@ function close()
 
 let Composes =
 {
-  filePath : null
+  filePath : null,
+  filter : null
 }
 
 //
 
 let Associates =
 {
-  manager : null
+  manager : null,
+  onChange : null,
+  onError : null,
 }
 
 //
@@ -203,14 +225,16 @@ let Restricts =
   paused : 0,
   closed : 0,
 
-  formed : 0
+  formed : 0,
+
+  logic : null
 }
 
-let Events =
-{
-  'change' : 'change',
-  'error' : 'error',
-}
+// let Events =
+// {
+//   'change' : 'change',
+//   'error' : 'error',
+// }
 
 //
 
@@ -231,7 +255,7 @@ let Extension =
   Composes,
   Associates,
   Restricts,
-  Events
+  // Events
 }
 
 _.classDeclare
@@ -242,7 +266,7 @@ _.classDeclare
 });
 
 _.Copyable.mixin( Self );
-_.EventHandler.mixin( Self );
+// _.EventHandler.mixin( Self );
 
 _.files.watcher.abstract = Self;
 
