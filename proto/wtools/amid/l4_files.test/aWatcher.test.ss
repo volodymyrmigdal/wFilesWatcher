@@ -487,6 +487,69 @@ async function filePathReplacedFileByDir( test )
 
 //
 
+async function filePathMultiple( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+  let path = a.fileProvider.path;
+
+  /* - */
+
+  test.case = 'watch multiple terminals'
+  a.reflect();
+  var filePath = [ a.abs( 'file1' ), a.abs( 'file2' ) ];
+  a.fileProvider.fileWrite( filePath[ 0 ], 'file1' );
+  a.fileProvider.fileWrite( filePath[ 1 ], 'file2' );
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  var files = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files );
+    if( files.length > 1 )
+    eventReady.take( e );
+  })
+  a.fileProvider.fileWrite( filePath[ 0 ], 'file11' );
+  a.fileProvider.fileWrite( filePath[ 1 ], 'file22' );
+  await eventReady;
+  test.identical( files.length, 2 );
+  test.identical( path.name( files[ 0 ].filePath ), 'file1' );
+  test.identical( path.name( files[ 1 ].filePath ), 'file2' );
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'watch multiple dirs'
+  a.reflect();
+  var filePath = [ a.abs( 'dir1' ), a.abs( 'dir2' ) ];
+  a.fileProvider.fileWrite( a.abs( 'dir1/file1' ), 'file1' );
+  a.fileProvider.fileWrite( a.abs( 'dir2/file2' ), 'file2' );
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  var files = [];
+  watcher.on( 'change', ( e ) =>
+  {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files );
+    if( files.length > 1 )
+    eventReady.take( e );
+  })
+  a.fileProvider.fileWrite( a.abs( 'dir1/file1' ), 'file1' );
+  a.fileProvider.fileWrite( a.abs( 'dir2/file2' ), 'file2' );
+  await eventReady;
+  test.identical( files.length, 2 );
+  test.identical( path.name( files[ 0 ].filePath ), 'file1' );
+  test.identical( path.name( files[ 1 ].filePath ), 'file2' );
+  await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
 async function close( test )
 {
   let context = this;
@@ -563,7 +626,7 @@ const Proto =
     filePathReplacedFileByDir,
     // filePathReplacedFileByLink,
     // filePathReplacedDirByLink,
-    // filePathMultiple,
+    filePathMultiple,
     // filePathIsSoftLinkToFile,
     // filePathIsSoftLinkToDir,
     // filePathIsHardLink,
