@@ -237,6 +237,47 @@ async function directory( test )
 
 //
 
+async function filePathIsMissing( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+
+  /* - */
+
+  test.case = 'disabled'
+  var filePath = a.abs( 'create/dir' );
+  var watcher = await test.mustNotThrowError( () => context.watcher.watch( filePath, { enabled : 0 } ) )
+  await test.mustNotThrowError( () => watcher.close() );
+
+  /* - */
+
+  test.case = 'enabled'
+  var filePath = a.abs( 'create/dir' );
+  await test.shouldThrowErrorAsync( context.watcher.watch( filePath, { enabled : 1 } ) );
+
+  /* - */
+
+  test.case = 'enabled later'
+  var filePath = a.abs( 'create/dir' );
+  var watcher = await context.watcher.watch( filePath, { enabled : 0 } );
+  await test.shouldThrowErrorAsync( watcher.resume() );
+
+  /* - */
+
+  test.case = 'multiple paths, one is missing'
+  var filePath = a.abs( 'create/dir1' );
+  var filePath2 = a.abs( 'create/dir2' );
+  a.fileProvider.dirMake( filePath );
+  var watcher = await context.watcher.watch( [ filePath, filePath2 ], { enabled : 0 } );
+  await test.shouldThrowErrorAsync( watcher.resume() );
+
+  /* - */
+
+  return null;
+}
+
+//
+
 async function close( test )
 {
   let context = this;
@@ -306,7 +347,7 @@ const Proto =
     terminalFile,
     directory,
 
-    // filePathIsMissing,
+    filePathIsMissing,
     // filePathRenamed
     // filePathReaddedSame,
     // filePathReaddedDifferent,
