@@ -289,6 +289,153 @@ async function filePathIsMissing( test )
 
 //
 
+async function filePathRenamed( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+
+  /* - */
+
+  test.case = 'renamed before watch resumed'
+  a.reflect();
+  var filePath = a.abs( 'fileToRename' );
+  var filePath2 = a.abs( 'fileNewName' );
+  a.fileProvider.dirMake( filePath );
+  var watcher = await context.watcher.watch( filePath, { enabled : 0 } );
+  a.fileProvider.fileRename( filePath2, filePath );
+  await test.shouldThrowErrorAsync( watcher.resume() );
+
+  /* - */
+
+  test.case = 'renamed after watch resumed'
+  a.reflect();
+  var filePath = a.abs( 'fileToRename' );
+  var filePath2 = a.abs( 'fileNewName' );
+  a.fileProvider.dirMake( filePath );
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
+  {
+    eventReady.take( e );
+  })
+  a.fileProvider.fileRename( filePath2, filePath );
+  test.false( a.fileProvider.fileExists( filePath ) )
+  await _.time.out( context.t3 );
+  test.identical( eventReady.resourcesCount(), 0 );
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'renamed after watch resumed, change made'
+  a.reflect();
+  var filePath = a.abs( 'fileToRename' );
+  var filePath2 = a.abs( 'fileNewName' );
+  a.fileProvider.dirMake( filePath );
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
+  {
+    eventReady.take( e );
+  })
+  a.fileProvider.fileRename( filePath2, filePath );
+  test.false( a.fileProvider.fileExists( filePath ) )
+  a.fileProvider.fileWrite( a.abs( 'fileNewName/file' ), 'file' );
+  await _.time.out( context.t3 );
+  test.identical( eventReady.resourcesCount(), 0 );
+  await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
+async function filePathReaddedSame( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+
+  /* - */
+
+  test.case = 'renamed after watch resumed'
+  a.reflect();
+  var filePath = a.abs( 'fileNameOld' );
+  var filePath2 = a.abs( 'fileNameNew' );
+  a.fileProvider.dirMake( filePath );
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
+  {
+    eventReady.take( e );
+  })
+  a.fileProvider.fileRename( filePath2, filePath );
+  a.fileProvider.fileRename( filePath, filePath2 );
+  test.true( a.fileProvider.fileExists( filePath ) )
+  await _.time.out( context.t3 );
+  test.identical( eventReady.resourcesCount(), 0 );
+  await watcher.close();
+
+  /* - */
+
+  test.case = 'renamed twice after watch resumed, change made'
+  a.reflect();
+  var filePath = a.abs( 'fileNameOld' );
+  var filePath2 = a.abs( 'fileNameNew' );
+  a.fileProvider.dirMake( filePath );
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
+  {
+    eventReady.take( e );
+  })
+  a.fileProvider.fileRename( filePath2, filePath );
+  a.fileProvider.fileRename( filePath, filePath2 );
+  test.true( a.fileProvider.fileExists( filePath ) )
+  a.fileProvider.fileWrite( a.abs( 'fileNameOld/file' ), 'file' );
+  var e = await eventReady;
+  test.identical( e.files.length, 1 );
+  await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
+async function filePathReaddedDifferent( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+
+  /* - */
+
+  test.case = 'watched dir replaced by a terminal'
+  a.reflect();
+  var filePath = a.abs( 'watchDir' );
+  var filePathTemp = a.abs( 'watchDirTemp' );
+  a.fileProvider.dirMake( filePath );
+  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
+  var eventReady = _.Consequence();
+  watcher.once( 'change', ( e ) =>
+  {
+    eventReady.take( e );
+  })
+  a.fileProvider.fileRename( filePathTemp, filePath );
+  a.fileProvider.fileWrite( filePath, 'file' );
+  test.true( a.fileProvider.fileExists( filePath ) )
+  await _.time.out( context.t3 );
+  test.identical( eventReady.resourcesCount(), 0 );
+  await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
 async function close( test )
 {
   let context = this;
@@ -359,9 +506,9 @@ const Proto =
     directory,
 
     filePathIsMissing,
-    // filePathRenamed,
-    // filePathReaddedSame,
-    // filePathReaddedDifferent,
+    filePathRenamed,
+    filePathReaddedSame,
+    filePathReaddedDifferent,
     // filePathReplacedFileByDir,
     // filePathReplacedDirByFile,
     // filePathReplacedFileByLink,
