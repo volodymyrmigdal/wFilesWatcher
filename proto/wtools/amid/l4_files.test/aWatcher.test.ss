@@ -273,6 +273,17 @@ async function filePathIsMissing( test )
 
   /* - */
 
+  test.case = 'path created after first resume attempt'
+  var filePath = a.abs( 'create/dir1' );
+  a.fileProvider.filesDelete( filePath )
+  var watcher = await context.watcher.watch( filePath, { enabled : 0 } );
+  await test.shouldThrowErrorAsync( watcher.resume() );
+  a.fileProvider.dirMake( filePath );
+  await test.mustNotThrowError( () => watcher.resume() );
+  await test.mustNotThrowError( () => watcher.close() );
+
+  /* - */
+
   return null;
 }
 
@@ -348,7 +359,7 @@ const Proto =
     directory,
 
     filePathIsMissing,
-    // filePathRenamed
+    // filePathRenamed,
     // filePathReaddedSame,
     // filePathReaddedDifferent,
     // filePathReplacedFileByDir,

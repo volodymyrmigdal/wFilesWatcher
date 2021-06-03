@@ -62,6 +62,16 @@ function _enable()
     return self;
   })
 
+  ready.catch( ( err ) =>
+  {
+    _.errAttend( err );
+    return _unwatch.call( self )
+    .then( () =>
+    {
+      throw err;
+    });
+  })
+
   return ready;
 }
 
