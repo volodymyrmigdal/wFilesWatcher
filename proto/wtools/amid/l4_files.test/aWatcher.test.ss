@@ -314,14 +314,16 @@ async function filePathRenamed( test )
   a.fileProvider.dirMake( filePath );
   var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  watcher.on( 'change', ( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) )
     eventReady.take( e );
   })
   a.fileProvider.fileRename( filePath2, filePath );
   test.false( a.fileProvider.fileExists( filePath ) )
-  await _.time.out( context.t3 );
-  test.identical( eventReady.resourcesCount(), 0 );
+  var e = await eventReady;
+  test.identical( e.files.length, 1 );
+  test.identical( a.fileProvider.path.name( e.files[ 0 ].filePath ), 'fileToRename' );
   await watcher.close();
 
   /* - */
@@ -333,15 +335,22 @@ async function filePathRenamed( test )
   a.fileProvider.dirMake( filePath );
   var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  var files = [];
+  watcher.on( 'change', ( e ) =>
   {
-    eventReady.take( e );
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files );
+    if( files.length > 2 )
+    eventReady.take( null );
   })
   a.fileProvider.fileRename( filePath2, filePath );
   test.false( a.fileProvider.fileExists( filePath ) )
   a.fileProvider.fileWrite( a.abs( 'fileNewName/file' ), 'file' );
-  await _.time.out( context.t3 );
-  test.identical( eventReady.resourcesCount(), 0 );
+  await eventReady;
+  test.identical( files.length, 3 );
+  test.identical( a.fileProvider.path.name( files[ 0 ].filePath ), 'fileToRename' );
+  test.identical( a.fileProvider.path.name( files[ 1 ].filePath ), 'file' );
+  test.identical( a.fileProvider.path.name( files[ 2 ].filePath ), 'file' );
   await watcher.close();
 
   /* - */
@@ -355,6 +364,7 @@ async function filePathReaddedSame( test )
 {
   let context = this;
   let a = test.assetFor( false );
+  let path = a.fileProvider.path;
 
   /* - */
 
@@ -365,15 +375,17 @@ async function filePathReaddedSame( test )
   a.fileProvider.dirMake( filePath );
   var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  watcher.on( 'change', ( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) )
     eventReady.take( e );
   })
   a.fileProvider.fileRename( filePath2, filePath );
   a.fileProvider.fileRename( filePath, filePath2 );
   test.true( a.fileProvider.fileExists( filePath ) )
-  await _.time.out( context.t3 );
-  test.identical( eventReady.resourcesCount(), 0 );
+  var e = await eventReady;
+  test.identical( e.files.length, 1 );
+  test.identical( path.name( e.files[ 0 ].filePath ), 'fileNameOld' );
   await watcher.close();
 
   /* - */
@@ -385,8 +397,9 @@ async function filePathReaddedSame( test )
   a.fileProvider.dirMake( filePath );
   var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  watcher.on( 'change', ( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) )
     eventReady.take( e );
   })
   a.fileProvider.fileRename( filePath2, filePath );
@@ -408,25 +421,30 @@ async function filePathReaddedDifferent( test )
 {
   let context = this;
   let a = test.assetFor( false );
+  let path = a.fileProvider.path;
 
   /* - */
 
   test.case = 'watched dir replaced by a terminal'
   a.reflect();
   var filePath = a.abs( 'watchDir' );
-  var filePathTemp = a.abs( 'watchDirTemp' );
   a.fileProvider.dirMake( filePath );
   var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  var files = [];
+  watcher.on( 'change', ( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files );
+    if( files.length );
     eventReady.take( e );
   })
-  a.fileProvider.fileRename( filePathTemp, filePath );
+  a.fileProvider.filesDelete( filePath );
   a.fileProvider.fileWrite( filePath, 'file' );
   test.true( a.fileProvider.fileExists( filePath ) )
-  await _.time.out( context.t3 );
-  test.identical( eventReady.resourcesCount(), 0 );
+  await eventReady;
+  test.identical( files.length, 1 );
+  test.identical( path.name( files[ 0 ].filePath ), 'watchDir' );
   await watcher.close();
 
   /* - */
