@@ -3,8 +3,8 @@ root:
   - wFileWacher.out
 consistency:
   ../will.yml: &ref_0
-    hash: 11ff3f8b00131c8a3fedf91dd31aeecb
-    size: 6931
+    hash: 6bf174f914d8ab009222a77791bf0842
+    size: 6982
 module:
   wFileWacher.out:
     about:
@@ -181,6 +181,8 @@ module:
           - ../proto/wtools/amid/l4_files/l7_watcher/step
           - ../proto/wtools/amid/l4_files/l7_watcher/step/WatchesLimit.s
           - ../proto/wtools/amid/l4_files.test
+          - ../proto/wtools/amid/l4_files.test/aWatcher.test.ss
+          - ../proto/wtools/amid/l4_files.test/Fb.test.ss
           - ../proto/wtools/amid/l4_files.test/Fs.test.ss
           - ../proto/wtools/amid/l4_files.test/Manager.test.ss
           - ../proto/wtools/amid/l4_files.test/WatchesLimit.test.ss
@@ -203,6 +205,10 @@ module:
         enabled: 0
       wEventHandler:
         path: 'npm:///wEventHandler'
+        autoExporting: 0
+        enabled: 0
+      wFiles:
+        path: 'npm:///wFiles'
         autoExporting: 0
         enabled: 0
       fb-watchman:
@@ -957,6 +963,10 @@ module:
         path: 'npm:///wEventHandler'
         autoExporting: 0
         enabled: 0
+      wFiles:
+        path: 'npm:///wFiles'
+        autoExporting: 0
+        enabled: 0
       fb-watchman:
         path: 'npm:///fb-watchman#2.0.1'
         autoExporting: 0
@@ -1499,5 +1509,5 @@ module:
           - 'build::npm'
     consistency:
       ../will.yml:
-        hash: 11ff3f8b00131c8a3fedf91dd31aeecb
-        size: 6931
+        hash: 6bf174f914d8ab009222a77791bf0842
+        size: 6982

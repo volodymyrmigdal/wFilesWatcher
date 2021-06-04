@@ -1,6 +1,6 @@
 {
   "name" : "wfileswatcher",
-  "version" : "0.1.13",
+  "version" : "0.1.14",
   "engine" : "node >= 10.0.0",
   "enabled" : 1,
   "description" : "Watch changes in the files tree of the fyles system",
@@ -36,7 +36,8 @@
     "wConsequence" : "gamma",
     "wCopyable" : "gamma",
     "wProto" : "gamma",
-    "wEventHandler" : "gamma"
+    "wEventHandler" : "gamma",
+    "wFiles" : "gamma"
   },
   "devDependencies" : { "eslint" : "7.1.0", "wTesting" : "gamma" },
   "keywords" : [ "wTools", "wFilesWatcher", "fileswatcher" ]
