@@ -574,6 +574,38 @@ async function filePathRenamed( test )
 
 //
 
+async function filePathMovedOutOfParent( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+
+  /* - */
+
+  test.case = 'moved after watch resumed'
+  a.reflect();
+  var filePath = a.abs( 'parent/fileToRename' );
+  var filePath2 = a.abs( 'fileNewName' );
+  a.fileProvider.dirMake( filePath );
+  var eventReady = _.Consequence();
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
+  {
+    console.log( _.entity.exportJs( e.files ) )
+    eventReady.take( e );
+  })
+  a.fileProvider.fileRename( filePath2, filePath );
+  test.false( a.fileProvider.fileExists( filePath ) )
+  var e = await eventReady;
+  test.identical( e.files.length, 1 );
+  test.identical( a.fileProvider.path.name( e.files[ 0 ].filePath ), 'fileToRename' );
+  await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
 async function filePathReaddedSame( test )
 {
   let context = this;
@@ -1088,6 +1120,7 @@ const Proto =
 
     filePathIsMissing,
     filePathRenamed,
+    filePathMovedOutOfParent,
     filePathReaddedSame,
     filePathReplacedDirByFile,
     filePathReplacedFileByDir,
