@@ -307,6 +307,9 @@ submodule:
   wEventHandler:
     path: 'npm:///wEventHandler'
     enabled: 0
+  wFiles:
+    path: 'npm:///wFiles'
+    enabled: 0
   fb-watchman:
     path: 'npm:///fb-watchman#2.0.1'
     enabled: 0
