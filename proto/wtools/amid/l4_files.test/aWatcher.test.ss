@@ -1148,7 +1148,7 @@ const Proto =
     terminalFile,
     directory,
     softLink,
-    hardLink,
+    // hardLink,
 
     filePathIsMissing,
     filePathRenamed,
