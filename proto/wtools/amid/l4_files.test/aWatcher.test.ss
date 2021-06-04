@@ -601,6 +601,32 @@ async function filePathMovedOutOfParent( test )
 
   /* - */
 
+  test.case = 'moved after watch resumed, change made'
+  a.reflect();
+  var filePath = a.abs( 'parent/fileToRename' );
+  var filePath2 = a.abs( 'fileNewName' );
+  a.fileProvider.dirMake( filePath );
+  var eventReady = _.Consequence();
+  var files = [];
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
+  {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files );
+    if( files.length > 2 )
+    eventReady.take( null );
+  })
+  a.fileProvider.fileRename( filePath2, filePath );
+  test.false( a.fileProvider.fileExists( filePath ) )
+  a.fileProvider.fileWrite( a.abs( 'fileNewName/file' ), 'file' );
+  await eventReady;
+  test.identical( files.length, 3 );
+  test.identical( a.fileProvider.path.name( files[ 0 ].filePath ), 'fileToRename' );
+  test.identical( a.fileProvider.path.name( files[ 1 ].filePath ), 'file' );
+  test.identical( a.fileProvider.path.name( files[ 2 ].filePath ), 'file' );
+  await watcher.close();
+
+  /* - */
+
   return null;
 }
 
