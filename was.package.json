@@ -3,7 +3,7 @@
   "version" : "0.1.13",
   "engine" : "node >= 10.0.0",
   "enabled" : 1,
-  "description" : "Watch changes in the files tree of the fyles system",
+  "description" : "Aggregates file watching strategies and provides a single interface to them. The strategy can be a wrapper around a built-in feature or a separate library. Use the module to easily create watcher instances, pause/resume watchers, switch between watcher strategies and control created watchers using the watcher manager class.",
   "license" : "MIT",
   "author" : "Kostiantyn Wandalen <wanalen@01.school>",
   "contributors" :
