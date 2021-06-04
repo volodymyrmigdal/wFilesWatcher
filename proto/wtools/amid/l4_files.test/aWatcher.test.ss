@@ -517,7 +517,7 @@ async function filePathRenamed( test )
   var filePath = a.abs( 'fileToRename' );
   var filePath2 = a.abs( 'fileNewName' );
   a.fileProvider.dirMake( filePath );
-  var watcher = await context.watcher.watch( filePath, { enabled : 0 } );
+  var watcher = await context.watcher.watch( filePath, { onChange : () => {}, enabled : 0 } );
   a.fileProvider.fileRename( filePath2, filePath );
   await test.shouldThrowErrorAsync( watcher.resume() );
 
@@ -528,9 +528,8 @@ async function filePathRenamed( test )
   var filePath = a.abs( 'fileToRename' );
   var filePath2 = a.abs( 'fileNewName' );
   a.fileProvider.dirMake( filePath );
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     eventReady.take( e );
@@ -549,10 +548,9 @@ async function filePathRenamed( test )
   var filePath = a.abs( 'fileToRename' );
   var filePath2 = a.abs( 'fileNewName' );
   a.fileProvider.dirMake( filePath );
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
@@ -589,9 +587,8 @@ async function filePathReaddedSame( test )
   var filePath = a.abs( 'fileNameOld' );
   var filePath2 = a.abs( 'fileNameNew' );
   a.fileProvider.dirMake( filePath );
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     eventReady.take( e );
@@ -611,9 +608,8 @@ async function filePathReaddedSame( test )
   var filePath = a.abs( 'fileNameOld' );
   var filePath2 = a.abs( 'fileNameNew' );
   a.fileProvider.dirMake( filePath );
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     eventReady.take( e );
@@ -644,10 +640,9 @@ async function filePathReplacedDirByFile( test )
   a.reflect();
   var filePath = a.abs( 'watchDir' );
   a.fileProvider.dirMake( filePath );
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
@@ -679,10 +674,9 @@ async function filePathReplacedFileByDir( test )
   a.reflect();
   var filePath = a.abs( 'watchFile' );
   a.fileProvider.fileWrite( filePath, 'file' );
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
@@ -716,10 +710,9 @@ async function filePathMultiple( test )
   var filePath = [ a.abs( 'file1' ), a.abs( 'file2' ) ];
   a.fileProvider.fileWrite( filePath[ 0 ], 'file1' );
   a.fileProvider.fileWrite( filePath[ 1 ], 'file2' );
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
@@ -741,10 +734,9 @@ async function filePathMultiple( test )
   var filePath = [ a.abs( 'dir1' ), a.abs( 'dir2' ) ];
   a.fileProvider.fileWrite( a.abs( 'dir1/file1' ), 'file1' );
   a.fileProvider.fileWrite( a.abs( 'dir2/file2' ), 'file2' );
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
@@ -780,10 +772,9 @@ async function filePathIsLink( test )
   var filePath = a.abs( 'link' );
   a.fileProvider.fileWrite( filePathReal, 'file' )
   a.fileProvider.softLink( filePath, filePathReal )
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
@@ -803,10 +794,9 @@ async function filePathIsLink( test )
   var filePath = a.abs( 'link' );
   a.fileProvider.dirMake( filePathReal )
   a.fileProvider.softLink( filePath, filePathReal )
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
@@ -826,10 +816,9 @@ async function filePathIsLink( test )
   var filePath = a.abs( 'link' );
   a.fileProvider.fileWrite( filePathReal, 'file' )
   a.fileProvider.hardLink( filePath, filePathReal )
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
@@ -881,10 +870,9 @@ async function filePathComplexTree( test )
   var filePath = a.abs( 'root' );
   a.fileProvider.dirMake( filePath )
   extract.filesReflectTo( _.fileProvider, filePath );
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
@@ -905,10 +893,9 @@ async function filePathComplexTree( test )
   var filePath = a.abs( 'root' );
   a.fileProvider.dirMake( filePath )
   extract.filesReflectTo( _.fileProvider, filePath );
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
@@ -929,10 +916,9 @@ async function filePathComplexTree( test )
   var filePath = a.abs( 'root' );
   a.fileProvider.dirMake( filePath )
   extract.filesReflectTo( _.fileProvider, filePath );
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
@@ -953,10 +939,9 @@ async function filePathComplexTree( test )
   var filePath = a.abs( 'root' );
   a.fileProvider.dirMake( filePath )
   extract.filesReflectTo( _.fileProvider, filePath );
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
@@ -1008,11 +993,9 @@ async function watchFollowingSymlinks( test )
   a.fileProvider.softLink( path.join( dstPath, 'dir0/link1' ), path.join( dstPath, 'dir0/dir1' ) )
   var filePathReal = path.join( dstPath, 'dir0/dir1/file' );
   var filePath = path.join( dstPath, 'link0/link1/file' );
-  console.log( a.fileProvider.pathResolveLinkFull( filePath ) )
-  var watcher = await context.watcher.watch( filePath, { enabled : 1 } );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
@@ -1040,10 +1023,12 @@ async function close( test )
   test.case = 'no events after close'
   var filePath = a.abs( 'create/dir' );
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
-  test.true( watcher.manager.has( watcher ) );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) => eventReady.take( e ) )
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ),( e ) =>
+  {
+    eventReady.take( e )
+  });
+  test.true( watcher.manager.has( watcher ) );
   await watcher.close();
   a.fileProvider.dirMake( filePath );
   await _.time.out( context.t3 );
@@ -1056,7 +1041,7 @@ async function close( test )
   test.case = 'call close twice'
   var filePath = a.abs( 'create/dir' );
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) => {} );
   test.true( watcher.manager.has( watcher ) );
   var eventReady = _.Consequence();
   await watcher.close();
