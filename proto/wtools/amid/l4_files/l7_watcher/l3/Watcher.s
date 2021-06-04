@@ -111,11 +111,28 @@ function form()
 
 //
 
+function featuresForm()
+{
+  let self = this;
+  let features = self.Features;
+
+  let ready = _.take( self );
+
+  if( features._formed )
+  return ready;
+
+  ready.then( () => self._featuresForm() )
+
+  return ready;
+}
+
+//
+
 function resume()
 {
   let self = this;
 
-  let ready = _.take( self );
+  let ready = self.featuresForm();
 
   if( self.enabled && !self.paused )
   return ready;
@@ -202,6 +219,15 @@ function close()
 // extension
 // --
 
+let Features =
+{
+  recursion : null,
+  watchedDirRenameDetection : null,
+  _formed : 0
+}
+
+//
+
 let Composes =
 {
   filePath : null,
@@ -227,7 +253,12 @@ let Restricts =
 
   formed : 0,
 
-  logic : null
+  logic : null,
+}
+
+let Statics =
+{
+  Features
 }
 
 // let Events =
@@ -245,6 +276,9 @@ let Extension =
   unform,
   form,
 
+  featuresForm,
+  _featuresForm : null,
+
   resume,
   _resume : null,
   pause,
@@ -255,6 +289,7 @@ let Extension =
   Composes,
   Associates,
   Restricts,
+  Statics
   // Events
 }
 
