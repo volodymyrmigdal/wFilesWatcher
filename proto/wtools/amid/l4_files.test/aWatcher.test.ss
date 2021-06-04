@@ -359,12 +359,13 @@ async function hardLink( test )
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
-    if( files.length === 1 )
+    if( files.length >= 1 )
     eventReady.take( e )
   })
   a.fileProvider.hardLink( linkPath, filePath );
   await eventReady;
-  test.contains( files[ 0 ].filePath, 'link.js' )
+  var fileNames = files.map( ( file ) => path.fullName( file.filePath ) );
+  test.true( _.longHas( fileNames, 'link.js' ) )
   await watcher.close();
 
   /* - */
