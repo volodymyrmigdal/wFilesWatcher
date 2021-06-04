@@ -1,20 +1,17 @@
 
 var _ = require( 'wfileswatcher' )
 
-let ready = _.files.watcher.fs.watch({ [ __filename ] : null });
+let ready = _.files.watcher.fs.watch( __filename, ( e ) =>
+{
+  console.log( e.files )
+});
+
 let fsWatcher = null;
 
 ready.then( ( watcher ) =>
 {
   fsWatcher = watcher;
-
   console.log( `Make some change in ${__filename}` )
-
-  watcher.on( 'change', ( e ) =>
-  {
-    console.log( e.files )
-  })
-
   return null;
 })
 

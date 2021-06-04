@@ -88,41 +88,57 @@ function form()
 
 //
 
-function add( watcher )
+function _add( watcher )
 {
   let self = this;
   _.assert( watcher instanceof _.files.watcher.abstract );
   _.assert( !_.longHas( self.watcherArray, watcher ) );
   _.arrayAppendElement( self.watcherArray, watcher );
-
-  watcher.on( 'change', self, () =>
-  {
-    self.idleTimers.forEach( ( timer ) => timer.cancel() )
-    _.longEmpty( self.idleTimers );
-
-    self.idleTimerDescriptors.forEach( ( descriptor ) =>
-    {
-      let timer = _.time.begin( descriptor.time, () =>
-      {
-        _.arrayRemoveElementOnceStrictly( self.idleTimerDescriptors, descriptor )
-        _.arrayRemoveElementOnceStrictly( self.idleTimers, timer )
-        descriptor.cb();
-      })
-      self.idleTimers.push( timer );
-    })
-  });
 }
 
 //
 
-function remove( watcher )
+function _remove( watcher )
 {
   let self = this;
   _.assert( watcher instanceof _.files.watcher.abstract );
   _.assert( _.longHas( self.watcherArray, watcher ) );
   _.arrayRemoveElement( self.watcherArray, watcher );
-  watcher.off( 'change', self );
+}
 
+//
+
+function has( watcher )
+{
+  let self = this;
+  _.assert( watcher instanceof _.files.watcher.abstract );
+  return _.longHas( self.watcherArray, watcher );
+}
+
+//
+
+function pause()
+{
+  let self = this;
+
+  if( !self.watcherArray.length )
+  return _.take( null );
+
+  let cons = self.watcherArray.map( ( watcher ) => watcher.pause() );
+  return _.Consequence.AndKeep( ... cons );
+}
+
+//
+
+function resume()
+{
+  let self = this;
+
+  if( !self.watcherArray.length )
+  return _.take( null );
+
+  let cons = self.watcherArray.map( ( watcher ) => watcher.resume() );
+  return _.Consequence.AndKeep( ... cons );
 }
 
 //
@@ -144,6 +160,37 @@ function close()
   })
 
   return ready;
+}
+
+//
+
+function _onChange( e )
+{
+  let self = this;
+
+  self.eventGive( e );
+
+  self.idleTimers.forEach( ( timer ) => timer.cancel() )
+  _.longEmpty( self.idleTimers );
+
+  self.idleTimerDescriptors.forEach( ( descriptor ) =>
+  {
+    let timer = _.time.begin( descriptor.time, () =>
+    {
+      _.arrayRemoveElementOnceStrictly( self.idleTimerDescriptors, descriptor )
+      _.arrayRemoveElementOnceStrictly( self.idleTimers, timer )
+      descriptor.cb();
+    })
+    self.idleTimers.push( timer );
+  })
+}
+
+//
+
+function _onError( e )
+{
+  let self = this;
+  self.eventGive( e );
 }
 
 //
@@ -198,6 +245,16 @@ let Restricts =
 
 //
 
+let Events =
+{
+  'file.change' : 'file.change',
+  'watcher.init' : 'watcher.init',
+  'watcher.finit' : 'watcher.finit',
+  'error' : 'error',
+}
+
+//
+
 let Extension =
 {
   finit,
@@ -205,16 +262,24 @@ let Extension =
   unform,
   form,
 
-  add,
-  remove,
+  _add,
+  _remove,
+  has,
+
+  pause,
+  resume,
 
   close,
+
+  _onChange,
+  _onError,
 
   onIdle,
 
   Composes,
   Associates,
-  Restricts
+  Restricts,
+  Events
 }
 
 _.classDeclare
@@ -225,6 +290,7 @@ _.classDeclare
 });
 
 _.Copyable.mixin( Self );
+_.EventHandler.mixin( Self );
 
 //
 

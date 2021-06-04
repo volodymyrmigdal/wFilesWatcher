@@ -1,4 +1,4 @@
-( function _FsWatcher_test_s_()
+( function _FbWatcher_test_s_()
 {
 
 'use strict';
@@ -27,7 +27,7 @@ function onSuiteBegin()
 {
   let self = this;
 
-  self.suiteTempPath = _.path.tempOpen( _.path.join( __dirname, '../..'  ), 'FsWatcher' );
+  self.suiteTempPath = _.path.tempOpen( _.path.join( __dirname, '../..'  ), 'FbWatcher' );
   self.assetsOriginalPath = _.path.join( __dirname, '_asset' );
 }
 
@@ -38,7 +38,8 @@ function onSuiteBegin()
 const Proto =
 {
 
-  name : 'Tools.files.watcher.fs',
+  name : 'Tools.files.watcher.fb',
+  enabled : 0,
   silencing : 1,
 
   onSuiteBegin,
@@ -46,7 +47,7 @@ const Proto =
 
   context :
   {
-    watcher : _.files.watcher.fs
+    watcher : _.files.watcher.fb
   },
 
   tests :

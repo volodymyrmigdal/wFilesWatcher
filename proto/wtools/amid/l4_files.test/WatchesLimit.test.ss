@@ -76,6 +76,7 @@ const Proto =
 
   name : 'WatchesLimit',
   silencing : 1,
+  enabled : 0,
 
   onSuiteBegin,
   onSuiteEnd,

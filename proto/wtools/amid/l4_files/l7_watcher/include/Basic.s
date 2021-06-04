@@ -12,6 +12,7 @@ if( typeof module !== 'undefined' )
   _.include( 'wPathTools' );
   _.include( 'wConsequence' );
   _.include( 'wEventHandler' );
+  _.include( 'wFiles' );
 
   module[ 'exports' ] = _;
 }
