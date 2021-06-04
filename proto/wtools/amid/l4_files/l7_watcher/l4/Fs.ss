@@ -126,6 +126,7 @@ function _watcherRegisterCallbacks( watcher )
       err
     }
     // self.eventGive( e );
+    self.manager._onError( e );
     self.onError( e );
   })
 }

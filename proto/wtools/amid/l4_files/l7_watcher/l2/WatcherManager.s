@@ -187,6 +187,14 @@ function _onChange( e )
 
 //
 
+function _onError( e )
+{
+  let self = this;
+  self.eventGive( e );
+}
+
+//
+
 function onIdle( time, cb )
 {
   let self = this;
@@ -264,6 +272,8 @@ let Extension =
   close,
 
   _onChange,
+  _onError,
+
   onIdle,
 
   Composes,

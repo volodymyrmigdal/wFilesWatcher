@@ -113,6 +113,16 @@ function _enable()
         relative_path : descriptor.relativePath
       };
 
+      if( self.filter )
+      {
+        _.assert( 0, 'not tested' );
+        subscriptionDescriptor.expression = [ 'anyof' ];
+        self.filter.forEach( ( e ) =>
+        {
+          subscriptionDescriptor.expression.push( [ 'match', e ] )
+        })
+      }
+
       self.subscriptionMap[ descriptor.watch ] = { subscriptionDescriptor, watchDescriptor : descriptor };
 
       let con = _.Consequence();
@@ -145,13 +155,15 @@ function _enable()
 
       let e =
       {
-        kind : 'change',
+        kind : 'file.change',
         watcher : self,
         reason : null,
         files
       }
 
-      self.eventGive( e );
+      // self.eventGive( e );
+      self.manager._onChange( e );
+      self.onChange( e );
     });
 
     return null;
@@ -239,7 +251,7 @@ function _rewatch()
       {
         logger.log( 'warning: ', resp.warning );
       }
-      logger.log( 'watch established on ', resp.watch, ' relative_path', resp.relative_path );
+      // logger.log( 'watch established on ', resp.watch, ' relative_path', resp.relative_path );
 
       descriptor.watch = resp.watch;
       descriptor.clock = resp.clock;
@@ -309,15 +321,34 @@ function _close()
 
 //
 
-function watch( filePath, o )
+function watch( filePath, onChange )
 {
   _.assert( arguments.length === 1 || arguments.length === 2 );
 
-  o = o || Object.create( null );
+  let o;
+
+  if( arguments.length === 1 )
+  {
+    o = arguments[ 0 ];
+  }
+  else if( _.routineIs( onChange ) )
+  {
+    o = { filePath, onChange }
+  }
+  else
+  {
+    o = onChange;
+    _.assert( _.object.is( o ) )
+    _.assert( o.filePath === undefined )
+    o.filePath = filePath;
+  }
 
   _.routine.options_( watch, o );
 
-  let watcher = new Self({ filePath, manager : o.manager });
+  _.assert( o.filePath !== undefined );
+  _.assert( _.routineIs( o.onChange ) );
+
+  let watcher = new Self( _.mapBut_( null, o, { enabled : null } ) );
 
   if( o.enabled )
   return watcher.resume();
@@ -327,6 +358,10 @@ function watch( filePath, o )
 
 watch.defaults =
 {
+  filePath : null,
+  onChange : null,
+  onError : null,
+  filter : null,
   enabled : 1,
   manager : null
 }
