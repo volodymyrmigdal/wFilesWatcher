@@ -529,6 +529,7 @@ async function filePathRenamed( test )
   var filePath2 = a.abs( 'fileNewName' );
   a.fileProvider.dirMake( filePath );
   var eventReady = _.Consequence();
+  await _.time.out( context.t1 );
   var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
@@ -545,11 +546,12 @@ async function filePathRenamed( test )
 
   test.case = 'renamed after watch resumed, change made'
   a.reflect();
-  var filePath = a.abs( 'fileToRename' );
-  var filePath2 = a.abs( 'fileNewName' );
+  var filePath = a.abs( 'src' );
+  var filePath2 = a.abs( 'dst' );
   a.fileProvider.dirMake( filePath );
   var eventReady = _.Consequence();
   var files = [];
+  await _.time.out( context.t1 );
   var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
@@ -559,12 +561,11 @@ async function filePathRenamed( test )
   })
   a.fileProvider.fileRename( filePath2, filePath );
   test.false( a.fileProvider.fileExists( filePath ) )
-  a.fileProvider.fileWrite( a.abs( 'fileNewName/file' ), 'file' );
+  a.fileProvider.fileWrite( a.abs( 'dst/file' ), 'file' );
   await eventReady;
-  test.identical( files.length, 3 );
-  test.identical( a.fileProvider.path.name( files[ 0 ].filePath ), 'fileToRename' );
-  test.identical( a.fileProvider.path.name( files[ 1 ].filePath ), 'file' );
-  test.identical( a.fileProvider.path.name( files[ 2 ].filePath ), 'file' );
+  var fileNames = files.map( ( file ) => _.path.name( file.filePath ) );
+  test.true( _.longHas( fileNames, 'src' ) )
+  test.true( _.longHas( fileNames, 'file' ) )
   await watcher.close();
 
   /* - */
@@ -599,7 +600,7 @@ async function filePathMovedOutOfParent( test )
   test.identical( a.fileProvider.path.name( e.files[ 0 ].filePath ), 'fileToRename' );
   await watcher.close();
 
-  /* - */
+  // /* - */
 
   test.case = 'moved after watch resumed, change made'
   a.reflect();
@@ -629,6 +630,8 @@ async function filePathMovedOutOfParent( test )
 
   return null;
 }
+
+filePathMovedOutOfParent.experimental = 1;
 
 //
 
