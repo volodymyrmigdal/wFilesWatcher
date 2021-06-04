@@ -75,7 +75,8 @@ function _featuresForm()
 
     con.thenGive( () =>
     {
-      watch.close()
+      watch.close();
+      _.fileProvider.fileDelete( dstPath );
       watch.on( 'close', () => con.take( self ) )
     })
 
@@ -175,21 +176,27 @@ function _watcherRegisterCallbacks( watcherDescriptor )
 
   watcher.on( 'change', function ( type, filename )
   {
-    debugger
     if( watcherDescriptor.relativeWatchPath )
-    if( !_.strBegins( filename, watcherDescriptor.relativeWatchPath ) )
     {
-      if( type !== 'rename' )
-      return false;
-
       let filePath = _.path.join( watcher.filePath, filename );
       let stat = _.fileProvider.statRead({ filePath, throwing : 0 });
-      if( !stat )
-      return false;
-      if( stat.ino !== watcherDescriptor.stat.ino )
-      return false;
-      watcherDescriptor.relativeWatchPath = _.path.fullName( filePath );
+
+      if( !_.strBegins( filename, watcherDescriptor.relativeWatchPath ) )
+      {
+        if( type !== 'rename' )
+        return false;
+        if( !stat )
+        return false;
+        if( stat.ino !== watcherDescriptor.stat.ino )
+        return false;
+        watcherDescriptor.relativeWatchPath = _.path.fullName( filePath );
+      }
+      else if( stat && stat.ino !== watcherDescriptor.stat.ino )
+      {
+        watcherDescriptor.stat = stat;
+      }
     }
+
 
     if( self.filter )
     if( !self.logic.exec({ onEach : ( e ) => e.test( filename ) }) )
