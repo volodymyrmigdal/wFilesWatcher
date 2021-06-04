@@ -50,12 +50,11 @@ async function terminalFile( test )
   var filePath = a.abs( 'file.js' );
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   await _.time.out( context.t1 );
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     eventReady.take( e )
-  })
+  });
   a.fileProvider.fileWrite( filePath, 'a' );
   var e = await eventReady;
   var exp =
@@ -72,12 +71,11 @@ async function terminalFile( test )
   var filePath = a.abs( 'file.js' );
   a.fileProvider.fileWrite( filePath, 'a' );
   await _.time.out( context.t1 );
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ),( e ) =>
   {
     eventReady.take( e )
-  })
+  });
   a.fileProvider.fileWrite( filePath, 'ab' );
   var e = await eventReady;
   var exp =
@@ -95,15 +93,14 @@ async function terminalFile( test )
   var filePath2 = a.abs( 'file.x' );
   a.fileProvider.fileWrite( filePath, 'a' );
   await _.time.out( context.t1 );
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
   var events = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     events.push( e );
     if( events.length > 1 )
     eventReady.take( null )
-  })
+  });
   a.fileProvider.fileRename( filePath2, filePath );
   await eventReady;
   var exp =
@@ -126,12 +123,11 @@ async function terminalFile( test )
   var filePath = a.abs( 'file.js' );
   a.fileProvider.fileWrite( filePath, 'a' );
   await _.time.out( context.t1 );
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ),( e ) =>
   {
     eventReady.take( e )
-  })
+  });
   a.fileProvider.filesDelete( filePath );
   var e = await eventReady;
   var exp =
@@ -159,12 +155,11 @@ async function directory( test )
   test.case = 'create'
   var filePath = a.abs( 'create/dir' );
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ),( e ) =>
   {
     eventReady.take( e )
-  })
+  });
   a.fileProvider.dirMake( filePath );
   var e = await eventReady;
   var exp =
@@ -182,10 +177,9 @@ async function directory( test )
   var filePath2 = a.abs( 'rename/dirb' );
   a.fileProvider.dirMake( filePath )
   await _.time.out( context.t1 );
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var events = [];
   var eventReady = _.Consequence();
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     events.push( e );
     if( events.length > 1 )
@@ -214,9 +208,8 @@ async function directory( test )
   a.reflect();
   a.fileProvider.dirMake( filePath )
   await _.time.out( context.t1 );
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     eventReady.take( e )
   })
@@ -251,9 +244,8 @@ async function softLink( test )
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   a.fileProvider.fileWrite( filePath, 'file' )
   await _.time.out( context.t1 );
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     eventReady.take( e )
   })
@@ -278,10 +270,9 @@ async function softLink( test )
   a.fileProvider.fileWrite( filePath2, 'file2' )
   a.fileProvider.softLink( linkPath, filePath );
   await _.time.out( context.t1 );
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files )
@@ -303,10 +294,9 @@ async function softLink( test )
   a.fileProvider.fileWrite( filePath, 'a' );
   a.fileProvider.softLink( linkPath, filePath );
   await _.time.out( context.t1 );
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     files.push( ... e.files );
     if( files.length > 1 )
@@ -327,9 +317,8 @@ async function softLink( test )
   a.fileProvider.fileWrite( filePath, 'a' );
   a.fileProvider.softLink( linkPath, filePath );
   await _.time.out( context.t1 );
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     eventReady.take( e )
   })
@@ -364,9 +353,8 @@ async function hardLink( test )
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   a.fileProvider.fileWrite( filePath, 'file' )
   await _.time.out( context.t1 );
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     eventReady.take( e )
   })
@@ -391,9 +379,8 @@ async function hardLink( test )
   a.fileProvider.fileWrite( filePath2, 'file2' )
   a.fileProvider.hardLink( linkPath, filePath );
   await _.time.out( context.t1 );
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     eventReady.take( e )
   })
@@ -417,10 +404,9 @@ async function hardLink( test )
   a.fileProvider.fileWrite( filePath, 'a' );
   a.fileProvider.hardLink( linkPath, filePath );
   await _.time.out( context.t1 );
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
   var files = [];
-  watcher.on( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     files.push( ... e.files );
     if( files.length > 1 )
@@ -441,9 +427,8 @@ async function hardLink( test )
   a.fileProvider.fileWrite( filePath, 'a' );
   a.fileProvider.hardLink( linkPath, filePath );
   await _.time.out( context.t1 );
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ) );
   var eventReady = _.Consequence();
-  watcher.once( 'change', ( e ) =>
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     eventReady.take( e )
   })
@@ -473,20 +458,20 @@ async function filePathIsMissing( test )
 
   test.case = 'disabled'
   var filePath = a.abs( 'create/dir' );
-  var watcher = await test.mustNotThrowError( () => context.watcher.watch( filePath, { enabled : 0 } ) )
+  var watcher = await test.mustNotThrowError( () => context.watcher.watch( filePath, { onChange, enabled : 0 } ) )
   await test.mustNotThrowError( () => watcher.close() );
 
   /* - */
 
   test.case = 'enabled'
   var filePath = a.abs( 'create/dir' );
-  await test.shouldThrowErrorAsync( context.watcher.watch( filePath, { enabled : 1 } ) );
+  await test.shouldThrowErrorAsync( context.watcher.watch( filePath, { onChange, enabled : 1 } ) );
 
   /* - */
 
   test.case = 'enabled later'
   var filePath = a.abs( 'create/dir' );
-  var watcher = await context.watcher.watch( filePath, { enabled : 0 } );
+  var watcher = await context.watcher.watch( filePath, { onChange, enabled : 0 } );
   await test.shouldThrowErrorAsync( watcher.resume() );
 
   /* - */
@@ -495,7 +480,7 @@ async function filePathIsMissing( test )
   var filePath = a.abs( 'create/dir1' );
   var filePath2 = a.abs( 'create/dir2' );
   a.fileProvider.dirMake( filePath );
-  var watcher = await context.watcher.watch( [ filePath, filePath2 ], { enabled : 0 } );
+  var watcher = await context.watcher.watch( [ filePath, filePath2 ], { onChange, enabled : 0 } );
   await test.shouldThrowErrorAsync( watcher.resume() );
 
   /* - */
@@ -503,7 +488,7 @@ async function filePathIsMissing( test )
   test.case = 'path created after first resume attempt'
   var filePath = a.abs( 'create/dir1' );
   a.fileProvider.filesDelete( filePath )
-  var watcher = await context.watcher.watch( filePath, { enabled : 0 } );
+  var watcher = await context.watcher.watch( filePath, { onChange, enabled : 0 } );
   await test.shouldThrowErrorAsync( watcher.resume() );
   a.fileProvider.dirMake( filePath );
   await test.mustNotThrowError( () => watcher.resume() );
@@ -512,6 +497,10 @@ async function filePathIsMissing( test )
   /* - */
 
   return null;
+
+  /* - */
+
+  function onChange(){}
 }
 
 //
