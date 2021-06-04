@@ -355,17 +355,17 @@ async function hardLink( test )
   a.fileProvider.fileWrite( filePath, 'file' )
   await _.time.out( context.t1 );
   var eventReady = _.Consequence();
-  var files = [];
+  var fileNames = [];
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
-    files.push( ... e.files );
-    if( files.length >= 1 )
-    eventReady.take( e )
+    let names = e.files.map( ( file ) => path.fullName( file.filePath ) )
+    fileNames.push( ... names );
+    if( _.longHas( fileNames, 'link.js' ) )
+    eventReady.take( null )
   })
   a.fileProvider.hardLink( linkPath, filePath );
   await eventReady;
-  var fileNames = files.map( ( file ) => path.fullName( file.filePath ) );
   test.true( _.longHas( fileNames, 'link.js' ) )
   await watcher.close();
 
