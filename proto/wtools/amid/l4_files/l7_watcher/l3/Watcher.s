@@ -199,7 +199,7 @@ function close()
 // {
 //   let self = this;
 //   let o = self.on.head( self.on, arguments );
-//   _.event.on( self.ehandler, o );
+//   _.event.on( self.edispatcher, o );
 // }
 
 // _.routine.extend( on, _.event.on )
@@ -210,7 +210,7 @@ function close()
 // {
 //   let self = this;
 //   let o = self.off.head( self.off, arguments );
-//   _.event.off( self.ehandler, o );
+//   _.event.off( self.edispatcher, o );
 // }
 
 // _.routine.extend( off, _.event.off )
