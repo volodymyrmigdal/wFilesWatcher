@@ -3,14 +3,19 @@ root:
   - wFileWacher.out
 consistency:
   ../will.yml: &ref_0
-    hash: 6bf174f914d8ab009222a77791bf0842
-    size: 6982
+    hash: 3f2d371ba23ec807207455aab9b885b2
+    size: 7256
 module:
   wFileWacher.out:
     about:
       name: wFileWacher
       org: noorg
-      description: Watch changes in the files tree of the fyles system
+      description: >-
+        Aggregates file watching strategies and provides a single interface to
+        them. The strategy can be a wrapper around a built-in feature or a
+        separate library. Use the module to easily create watcher instances,
+        pause/resume watchers, switch between watcher strategies and control
+        created watchers using the watcher manager class.
       enabled: 1
       version: 0.1.0
       license: MIT
@@ -821,7 +826,12 @@ module:
     about:
       name: wFileWacher
       org: noorg
-      description: Watch changes in the files tree of the fyles system
+      description: >-
+        Aggregates file watching strategies and provides a single interface to
+        them. The strategy can be a wrapper around a built-in feature or a
+        separate library. Use the module to easily create watcher instances,
+        pause/resume watchers, switch between watcher strategies and control
+        created watchers using the watcher manager class.
       enabled: 1
       version: 0.1.0
       license: MIT
@@ -1509,5 +1519,5 @@ module:
           - 'build::npm'
     consistency:
       ../will.yml:
-        hash: 6bf174f914d8ab009222a77791bf0842
-        size: 6982
+        hash: 3f2d371ba23ec807207455aab9b885b2
+        size: 7256
