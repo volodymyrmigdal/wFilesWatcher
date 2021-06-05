@@ -53,7 +53,7 @@ async function onIdle( test )
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
-  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { onChange, manager } );
   var onIdleReady = _.Consequence();
   manager.onIdle( context.t1, () =>
   {
@@ -71,7 +71,7 @@ async function onIdle( test )
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
-  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { onChange, manager } );
   var onIdleReady = _.Consequence();
   manager.onIdle( context.t1, () =>
   {
@@ -90,7 +90,7 @@ async function onIdle( test )
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
-  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { onChange, manager } );
   var onIdleReady = _.Consequence();
   manager.onIdle( context.t1, () =>
   {
@@ -111,7 +111,7 @@ async function onIdle( test )
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
-  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { onChange, manager } );
   var onIdleReady = _.Consequence();
   manager.onIdle( context.t1, () =>
   {
@@ -132,7 +132,7 @@ async function onIdle( test )
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
-  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { onChange, manager } );
   var onIdleReady = _.Consequence();
   manager.onIdle( context.t1, () =>
   {
@@ -155,7 +155,7 @@ async function onIdle( test )
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
-  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { onChange, manager } );
   var onIdleReady = _.Consequence();
   manager.onIdle( context.t1, () =>
   {
@@ -185,7 +185,7 @@ async function onIdle( test )
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
-  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { onChange, manager } );
   var onIdleReady = _.Consequence();
   manager.onIdle( context.t1, () =>
   {
@@ -201,6 +201,12 @@ async function onIdle( test )
   /* - */
 
   return null;
+
+  /* */
+
+  function onChange()
+  {
+  }
 }
 
 //
@@ -217,7 +223,7 @@ async function onIdleMultipleCallbacks( test )
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   await _.time.out( context.t1 );
   var manager = new _.files.watcher.manager();
-  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { manager } );
+  var watcher = await _.files.watcher.fs.watch( a.fileProvider.path.dir( filePath ), { onChange, manager } );
   var onIdleReady1 = _.Consequence();
   var time1,time2,time3
   manager.onIdle( context.t3, () =>
@@ -244,6 +250,12 @@ async function onIdleMultipleCallbacks( test )
   /* - */
 
   return null;
+
+  /* - */
+
+  function onChange()
+  {
+  }
 }
 
 onIdleMultipleCallbacks.timeOut = 20000;
