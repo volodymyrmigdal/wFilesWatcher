@@ -1190,7 +1190,7 @@ const Proto =
     softLinkRename,
     softLinkRewrite,
     softLinkDelete,
-    // hardLink,
+    hardLink,
 
     filePathIsMissing,
     filePathRenamed,
