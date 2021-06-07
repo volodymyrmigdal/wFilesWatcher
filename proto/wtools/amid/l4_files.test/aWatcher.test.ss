@@ -340,8 +340,12 @@ async function softLink( test )
 
 //
 
-function softLinkExperiment( test )
+async function softLinkExperiment( test )
 {
+  let context = this;
+  let a = test.assetFor( false );
+  let path = a.fileProvider.path;
+
   test.case = 'change'
   var filePath = a.abs( 'file.js' );
   var filePath2 = a.abs( 'file.js' );
