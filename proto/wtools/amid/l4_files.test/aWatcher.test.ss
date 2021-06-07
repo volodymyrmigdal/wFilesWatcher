@@ -434,6 +434,7 @@ async function hardLinkRewrite( test )
   var eventReady = _.Consequence();
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) );
     eventReady.take( e )
   })
   a.fileProvider.fileDelete( linkPath );
@@ -473,6 +474,7 @@ async function hardLinkRename( test )
   var files = [];
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) );
     files.push( ... e.files );
     if( files.length > 1 )
     eventReady.take( null )
