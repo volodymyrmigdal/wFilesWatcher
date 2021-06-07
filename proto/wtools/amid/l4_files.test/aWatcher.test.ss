@@ -379,7 +379,7 @@ async function softLinkDelete( test )
 
 //
 
-async function hardLink( test )
+async function hardLinkCreate( test )
 {
   let context = this;
   let a = test.assetFor( false );
@@ -414,6 +414,19 @@ async function hardLink( test )
 
   /* - */
 
+  return null;
+}
+
+//
+
+async function hardLinkRewrite( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+  let path = a.fileProvider.path;
+
+  /* - */
+
   test.case = 'change'
   var filePath = a.abs( 'file.js' );
   var filePath2 = a.abs( 'file.js' );
@@ -439,7 +452,20 @@ async function hardLink( test )
   test.contains( e.files, exp )
   await watcher.close();
 
-  // /* - */
+  /* - */
+
+  return null;
+}
+
+//
+
+async function hardLinkRename( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+  let path = a.fileProvider.path;
+
+  /* - */
 
   test.case = 'rename'
   var filePath = a.abs( 'file.js' );
@@ -462,6 +488,19 @@ async function hardLink( test )
   var exp = [ 'link.js', 'link2.js' ]
   test.contains( fileNames.sort(), exp.sort() )
   await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
+async function hardLinkDelete( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+  let path = a.fileProvider.path;
 
   /* - */
 
@@ -1190,7 +1229,10 @@ const Proto =
     softLinkRename,
     softLinkRewrite,
     softLinkDelete,
-    hardLink,
+    hardLinkCreate,
+    hardLinkRename,
+    hardLinkRewrite,
+    hardLinkDelete,
 
     filePathIsMissing,
     filePathRenamed,
