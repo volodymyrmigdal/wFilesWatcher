@@ -919,6 +919,7 @@ async function filePathIsLink( test )
     files.push( ... e.files );
     eventReady.take( e );
   })
+  await _.time.out( context.t3 ) //xxx: investigate
   a.fileProvider.fileWrite( filePathReal, 'a' );
   test.true( a.fileProvider.isSoftLink( filePath ) )
   await eventReady;
@@ -963,6 +964,7 @@ async function filePathIsLink( test )
     files.push( ... e.files );
     eventReady.take( e );
   })
+  await _.time.out( context.t3 ) //xxx: investigate
   a.fileProvider.fileWrite( filePathReal, 'a' );
   test.true( a.fileProvider.areHardLinked( filePath, filePathReal ) )
   await eventReady;
@@ -1239,7 +1241,7 @@ const Proto =
 
     // filePathReplacedFileByDir,
     filePathMultiple,
-    // filePathIsLink,
+    filePathIsLink,
     // filePathComplexTree,
     // watchFollowingSymlinks,
 
