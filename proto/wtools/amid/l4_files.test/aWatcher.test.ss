@@ -340,6 +340,39 @@ async function softLink( test )
 
 //
 
+function softLinkExperiment( test )
+{
+  test.case = 'change'
+  var filePath = a.abs( 'file.js' );
+  var filePath2 = a.abs( 'file.js' );
+  var linkPath = a.abs( 'link.js' );
+  a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
+  a.fileProvider.fileWrite( filePath, 'file' )
+  a.fileProvider.fileWrite( filePath2, 'file2' )
+  a.fileProvider.softLink( linkPath, filePath );
+  await _.time.out( context.t1 );
+  var eventReady = _.Consequence();
+  var files = [];
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
+  {
+    console.log( _.entity.exportJs( e.files ) )
+    files.push( ... e.files )
+    if( files.length > 2 )
+    eventReady.take( e )
+  })
+  a.fileProvider.softLink( linkPath, filePath2 );
+  await eventReady;
+  var fileNames = files.map( ( file ) => path.fullName( file.filePath ) )
+  test.true( _.longHas( fileNames, 'link.js' ) )
+  await watcher.close();
+
+  return null;
+}
+
+softLinkExperiment.experimental = 1;
+
+//
+
 async function hardLink( test )
 {
   let context = this;
@@ -1148,6 +1181,7 @@ const Proto =
     terminalFile,
     directory,
     softLink,
+    softLinkExperiment,
     // hardLink,
 
     filePathIsMissing,
