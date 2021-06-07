@@ -774,7 +774,7 @@ async function filePathMultiple( test )
 
   test.case = 'watch multiple terminals'
   a.reflect();
-  var filePath = [ a.abs( 'file1' ), a.abs( 'file2' ) ];
+  var filePath = [ a.abs( 'multipleTerminals/file1' ), a.abs( 'multipleTerminals/file2' ) ];
   a.fileProvider.fileWrite( filePath[ 0 ], 'file1' );
   a.fileProvider.fileWrite( filePath[ 1 ], 'file2' );
   var eventReady = _.Consequence();
@@ -783,36 +783,36 @@ async function filePathMultiple( test )
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
-    if( files.length > 1 )
+    if( files.length === 2 )
     eventReady.take( e );
   })
   await _.time.out( context.t1 ) //xxx: remove and investigate
   a.fileProvider.fileWrite( filePath[ 0 ], 'file11' );
   a.fileProvider.fileWrite( filePath[ 1 ], 'file22' );
   await eventReady;
-  test.identical( files.length, 2 );
+  test.ge( files.length, 2 );
   await watcher.close();
 
   /* - */
 
   test.case = 'watch multiple dirs'
   a.reflect();
-  var filePath = [ a.abs( 'dir1' ), a.abs( 'dir2' ) ];
-  a.fileProvider.fileWrite( a.abs( 'dir1/file1' ), 'file1' );
-  a.fileProvider.fileWrite( a.abs( 'dir2/file2' ), 'file2' );
+  var filePath = [ a.abs( 'multipleDirs/dir1' ), a.abs( 'multipleDirs/dir2' ) ];
+  a.fileProvider.fileWrite( a.abs( 'multipleDirs/dir1/file1' ), 'file1' );
+  a.fileProvider.fileWrite( a.abs( 'multipleDirs/dir2/file2' ), 'file2' );
   var eventReady = _.Consequence();
   var files = [];
   var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
-    if( files.length > 1 )
+    if( files.length === 2 )
     eventReady.take( e );
   })
-  a.fileProvider.fileWrite( a.abs( 'dir1/file1' ), 'file1' );
-  a.fileProvider.fileWrite( a.abs( 'dir2/file2' ), 'file2' );
+  a.fileProvider.fileWrite( a.abs( 'multipleDirs/dir1/file1' ), 'file1' );
+  a.fileProvider.fileWrite( a.abs( 'multipleDirs/dir2/file2' ), 'file2' );
   await eventReady;
-  test.identical( files.length, 2 );
+  test.ge( files.length, 2 );
   await watcher.close();
 
   /* - */
