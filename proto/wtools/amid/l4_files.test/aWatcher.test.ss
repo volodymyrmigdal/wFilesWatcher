@@ -958,7 +958,7 @@ async function filePathIsLink( test )
   a.fileProvider.hardLink( filePath, filePathReal )
   var eventReady = _.Consequence();
   var files = [];
-  var watcher = await context.watcher.watch( filePath, ( e ) =>
+  var watcher = await context.watcher.watch( _.path.dir( filePath ), ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
