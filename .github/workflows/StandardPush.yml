@@ -14,9 +14,9 @@ jobs :
       fail-fast : false
       matrix :
         # os : [ ubuntu-latest, windows-latest, macos-latest ]
-        os : [ macos-latest ]
-        # node-version : [ 10.x, 12.9.1, 13.x, 14.x, 15.x ]
-        node-version : [ 12.9.1 ]
+        os : [ windows-latest ]
+        node-version : [ 10.x, 12.9.1, 13.x, 14.x, 15.x ]
+        # node-version : [ 12.9.1 ]
     if : "!startsWith( github.event.head_commit.message, 'version' ) && !startsWith( github.event.head_commit.message, '.' )"
     runs-on : ${{ matrix.os }}
     steps :
