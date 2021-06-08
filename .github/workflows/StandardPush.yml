@@ -43,5 +43,4 @@ jobs :
       run : env
     - run : npm list
       continue-on-error : true
-    # - run : node proto/wtools/amid/l4_files.test/Fs.test.ss v:10
-    - run : node proto/wtools/amid/l4_files.test/Fs.test.ss v:10 r:"filePathComplexTree*"
+    - run : node proto/wtools/amid/l4_files.test/Fs.test.ss v:10
