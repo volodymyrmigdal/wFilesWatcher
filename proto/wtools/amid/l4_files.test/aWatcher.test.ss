@@ -1233,6 +1233,7 @@ async function watchFollowingSymlinks( test )
     files.push( ... e.files );
     eventReady.take( e );
   })
+  await _.time.out( context.t3 ) //xxx:investigate
   a.fileProvider.fileWrite( filePathReal, 'a' );
   await eventReady;
   test.identical( files.length, 1 );
@@ -1337,7 +1338,7 @@ const Proto =
     filePathComplexTreeDeleteNestedFile,
     filePathComplexTreeDeleteNestedDir,
     filePathComplexTreeDeleteWhole,
-    // watchFollowingSymlinks,
+    watchFollowingSymlinks,
 
     close,
   }
