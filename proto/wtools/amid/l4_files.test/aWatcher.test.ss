@@ -978,7 +978,7 @@ async function filePathIsLink( test )
 
 //
 
-async function filePathComplexTree( test )
+async function filePathComplexTreeChangeNestedFile( test )
 {
   let context = this;
   let a = test.assetFor( false );
@@ -1029,6 +1029,39 @@ async function filePathComplexTree( test )
 
   /* - */
 
+  return null;
+}
+
+//
+
+async function filePathComplexTreeDeleteNestedFile( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+  let path = a.fileProvider.path;
+
+  var extract = new _.FileProvider.Extract
+  ({
+    filesTree :
+    {
+      'file0' : 'file0',
+      'dir0' :
+      {
+        'file1' : 'file1',
+        'dir1' :
+        {
+          'file2' : 'file2',
+          'dir2' :
+          {
+            'file3' : 'file3'
+          }
+        }
+      }
+    }
+  })
+
+  /* - */
+
   test.case = 'delete nested file'
   a.reflect();
   var filePath = a.abs( 'root' );
@@ -1049,6 +1082,39 @@ async function filePathComplexTree( test )
   await eventReady;
   test.identical( files.length, 1 );
   await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
+async function filePathComplexTreeDeleteNestedDir( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+  let path = a.fileProvider.path;
+
+  var extract = new _.FileProvider.Extract
+  ({
+    filesTree :
+    {
+      'file0' : 'file0',
+      'dir0' :
+      {
+        'file1' : 'file1',
+        'dir1' :
+        {
+          'file2' : 'file2',
+          'dir2' :
+          {
+            'file3' : 'file3'
+          }
+        }
+      }
+    }
+  })
 
   /* - */
 
@@ -1075,6 +1141,39 @@ async function filePathComplexTree( test )
 
   /* - */
 
+  return null;
+}
+
+//
+
+async function filePathComplexTreeDeleteWhole( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+  let path = a.fileProvider.path;
+
+  var extract = new _.FileProvider.Extract
+  ({
+    filesTree :
+    {
+      'file0' : 'file0',
+      'dir0' :
+      {
+        'file1' : 'file1',
+        'dir1' :
+        {
+          'file2' : 'file2',
+          'dir2' :
+          {
+            'file3' : 'file3'
+          }
+        }
+      }
+    }
+  })
+
+  /* - */
+
   test.case = 'remove whole tree'
   a.reflect();
   var filePath = a.abs( 'root' );
@@ -1087,7 +1186,7 @@ async function filePathComplexTree( test )
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
 
-    if( ( process.platform === 'linux' && files.length === 3 ) || files.length > 8 )
+    if( ( process.platform === 'linux' && files.length === 3 ) || files.length === 8 )
     eventReady.take( e );
   })
   a.fileProvider.filesDelete( filePath );
@@ -1242,7 +1341,10 @@ const Proto =
     // filePathReplacedFileByDir,
     filePathMultiple,
     filePathIsLink,
-    // filePathComplexTree,
+    filePathComplexTreeChangeNestedFile,
+    filePathComplexTreeDeleteNestedFile,
+    filePathComplexTreeDeleteNestedDir,
+    filePathComplexTreeDeleteWhole,
     // watchFollowingSymlinks,
 
     close,
