@@ -290,7 +290,11 @@ function _watcherRegisterCallbacks( watcherDescriptor )
     }
     // self.eventGive( e );
     self.manager._onError( e );
+
+    if( self.onError )
     self.onError( e );
+    else
+    throw _.errLogOnce( err );
   })
 }
 
