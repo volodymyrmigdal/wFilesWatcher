@@ -919,6 +919,7 @@ async function filePathIsLink( test )
     files.push( ... e.files );
     eventReady.take( e );
   })
+  await _.time.out( context.t3 ) //xxx: investigate
   a.fileProvider.fileWrite( filePathReal, 'a' );
   test.true( a.fileProvider.isSoftLink( filePath ) )
   await eventReady;
@@ -957,12 +958,13 @@ async function filePathIsLink( test )
   a.fileProvider.hardLink( filePath, filePathReal )
   var eventReady = _.Consequence();
   var files = [];
-  var watcher = await context.watcher.watch( filePath, ( e ) =>
+  var watcher = await context.watcher.watch( _.path.dir( filePath ), ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
     eventReady.take( e );
   })
+  await _.time.out( context.t3 * 2 ) //xxx: investigate
   a.fileProvider.fileWrite( filePathReal, 'a' );
   test.true( a.fileProvider.areHardLinked( filePath, filePathReal ) )
   await eventReady;
@@ -1239,7 +1241,7 @@ const Proto =
 
     // filePathReplacedFileByDir,
     filePathMultiple,
-    // filePathIsLink,
+    filePathIsLink,
     // filePathComplexTree,
     // watchFollowingSymlinks,
 
