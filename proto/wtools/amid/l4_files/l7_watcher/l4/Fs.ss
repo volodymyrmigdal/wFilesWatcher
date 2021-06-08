@@ -39,53 +39,99 @@ function _featuresForm()
   let self = this;
   let features = self.Features;
 
-  let ready = _.take( self );
-
   /* recursion */
 
   features.recursion = IsMacOrWin;
 
-  /* watchedDirRenameDetection */
-
-  ready.then( () =>
-  {
-    features.watchedDirRenameDetection = false;
-
-    let con1 = _.Consequence();
-
-    let tempDir = _.path.dirTemp();
-    let srcName = _.idWithDateAndTime();
-    let srcPath = _.path.join( tempDir, srcName );
-    let dstPath = _.path.join( tempDir, _.idWithDateAndTime() );
-
-    _.fileProvider.dirMake( srcPath );
-
-    let watch = Fs.watch( _.path.nativize( srcPath ), {}, ( type, filename ) =>
-    {
-      if( type !== 'rename' )
-      return;
-      features.watchedDirRenameDetection = filename === srcName;
-      con1.take( null );
-    })
-
-    _.fileProvider.fileRename( dstPath, srcPath );
-
-    let con2 = _.time.out( 500 );
-    let con = _.Consequence.OrTake( con1, con2 )
-
-    con.thenGive( () =>
-    {
-      watch.close();
-      _.fileProvider.fileDelete( dstPath );
-      watch.on( 'close', () => con.take( self ) )
-    })
-
-    return con;
-  })
-
   /* */
 
-  return ready;
+  return _.Consequence.AndKeep
+  (
+    self._watchedDirRenameDetection(),
+    self._watchedSymlinkChangeDetection()
+  );
+}
+
+//
+
+function _watchedDirRenameDetection()
+{
+  let self = this;
+  let features = self.Features;
+
+  features.watchedDirRenameDetection = false;
+
+  let con1 = _.Consequence();
+
+  let tempDir = _.path.dirTemp();
+  let srcName = _.idWithDateAndTime();
+  let srcPath = _.path.join( tempDir, srcName );
+  let dstPath = _.path.join( tempDir, _.idWithDateAndTime() );
+
+  _.fileProvider.dirMake( srcPath );
+
+  let watch = Fs.watch( _.path.nativize( srcPath ), {}, ( type, filename ) =>
+  {
+    if( type !== 'rename' )
+    return;
+    features.watchedDirRenameDetection = filename === srcName;
+    con1.take( null );
+  })
+
+  _.fileProvider.fileRename( dstPath, srcPath );
+
+  let con2 = _.time.out( 500 );
+  let con = _.Consequence.OrTake( con1, con2 )
+
+  con.thenGive( () =>
+  {
+    watch.close();
+    _.fileProvider.fileDelete( dstPath );
+    watch.on( 'close', () => con.take( self ) )
+  })
+
+  return con;
+}
+
+//
+
+function _watchedSymlinkChangeDetection()
+{
+  let self = this;
+  let features = self.Features;
+
+  features.watchedSymlinkChangeDetection = false;
+
+  let con1 = _.Consequence();
+
+  let tempDir = _.path.dirTemp();
+  let srcName = _.idWithDateAndTime();
+  let srcPath = _.path.join( tempDir, srcName );
+  let linkPath = _.path.join( tempDir, _.idWithDateAndTime() );
+
+  _.fileProvider.fileWrite( srcPath, srcPath );
+  _.fileProvider.softLink( linkPath, srcPath );
+
+  let watch = Fs.watch( _.path.nativize( linkPath ), {}, ( type, filename ) =>
+  {
+    features.watchedSymlinkChangeDetection = true;
+    con1.take( null );
+  })
+
+  _.fileProvider.fileWrite( linkPath, srcPath );
+
+  let con2 = _.time.out( 500 );
+  let con = _.Consequence.OrTake( con1, con2 )
+
+  con.thenGive( () =>
+  {
+    watch.close();
+    _.fileProvider.fileDelete( linkPath );
+    _.fileProvider.fileDelete( srcPath );
+    watch.on( 'close', () => con.take( self ) )
+  })
+
+  return con;
 }
 
 //
@@ -110,6 +156,9 @@ function _enable()
 
     _.each( self.filePath, ( val, filePath ) =>
     {
+      if( !self.Features.watchedSymlinkChangeDetection && _.fileProvider.isSoftLink( filePath ) )
+      filePath = _.fileProvider.pathResolveSoftLink( filePath );
+
       if( !self.Features.watchedDirRenameDetection && _.fileProvider.isDir( filePath ) && !_.path.isRoot( filePath ))
       {
         let watcherDescriptor = Object.create( null );
@@ -412,6 +461,8 @@ let Restricts =
 
 let Extension =
 {
+  _watchedDirRenameDetection,
+  _watchedSymlinkChangeDetection,
   _featuresForm,
 
   _resume,

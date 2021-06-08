@@ -223,6 +223,7 @@ let Features =
 {
   recursion : null,
   watchedDirRenameDetection : null,
+  watchedSymlinkChangeDetection : null,
   _formed : 0
 }
 

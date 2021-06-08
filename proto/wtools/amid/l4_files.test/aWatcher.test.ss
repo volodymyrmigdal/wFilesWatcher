@@ -920,7 +920,7 @@ async function filePathIsLink( test )
     eventReady.take( e );
   })
   await _.time.out( context.t3 ) //xxx: investigate
-  a.fileProvider.fileWrite( filePathReal, 'a' );
+  a.fileProvider.fileWrite( filePath, 'a' );
   test.true( a.fileProvider.isSoftLink( filePath ) )
   await eventReady;
   test.identical( files.length, 1 );
