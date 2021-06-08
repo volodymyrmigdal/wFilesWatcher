@@ -1019,10 +1019,7 @@ async function filePathComplexTreeChangeNestedFile( test )
     files.push( ... e.files );
     eventReady.take( e );
   })
-  if( process.platform === 'linux' )
   a.fileProvider.fileWrite( path.join( filePath, 'file0' ), 'a' );
-  else
-  a.fileProvider.fileWrite( path.join( filePath, 'dir0/dir1/dir2/file3' ), 'a' );
   await eventReady;
   test.identical( files.length, 1 );
   await watcher.close();
@@ -1075,10 +1072,7 @@ async function filePathComplexTreeDeleteNestedFile( test )
     files.push( ... e.files );
     eventReady.take( e );
   })
-  if( process.platform === 'linux' )
   a.fileProvider.fileDelete( path.join( filePath, 'file0' ) );
-  else
-  a.fileProvider.fileDelete( path.join( filePath, 'dir0/dir1/dir2/file3' ) );
   await eventReady;
   test.identical( files.length, 1 );
   await watcher.close();
@@ -1131,10 +1125,7 @@ async function filePathComplexTreeDeleteNestedDir( test )
     files.push( ... e.files );
     eventReady.take( e );
   })
-  if( process.platform === 'linux' )
   a.fileProvider.filesDelete( path.join( filePath, 'dir0' ) );
-  else
-  a.fileProvider.filesDelete( path.join( filePath, 'dir0/dir1/dir2' ) );
   await eventReady;
   test.ge( files.length, 1 );
   await watcher.close();
@@ -1181,17 +1172,18 @@ async function filePathComplexTreeDeleteWhole( test )
   extract.filesReflectTo( _.fileProvider, filePath );
   var eventReady = _.Consequence();
   var files = [];
+  var expectedFilesCount = null;
   var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
-
-    if( ( process.platform === 'linux' && files.length === 3 ) || files.length === 8 )
+    if( files.length === expectedFilesCount )
     eventReady.take( e );
   })
+  expectedFilesCount = context.watcher.Features.recursion ? 8 : 3;
   a.fileProvider.filesDelete( filePath );
   await eventReady;
-  test.ge( files.length, 3 );
+  test.identical( files.length, expectedFilesCount );
   test.false( a.fileProvider.fileExists( filePath ) );
   await watcher.close();
 
