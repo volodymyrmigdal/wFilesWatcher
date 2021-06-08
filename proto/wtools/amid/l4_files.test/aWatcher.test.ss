@@ -920,7 +920,7 @@ async function filePathIsLink( test )
     eventReady.take( e );
   })
   await _.time.out( context.t3 ) //xxx: investigate
-  a.fileProvider.fileWrite( filePathReal, 'a' );
+  a.fileProvider.fileWrite( filePath, 'a' );
   test.true( a.fileProvider.isSoftLink( filePath ) )
   await eventReady;
   test.identical( files.length, 1 );
@@ -958,7 +958,7 @@ async function filePathIsLink( test )
   a.fileProvider.hardLink( filePath, filePathReal )
   var eventReady = _.Consequence();
   var files = [];
-  var watcher = await context.watcher.watch( _.path.dir( filePath ), ( e ) =>
+  var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
