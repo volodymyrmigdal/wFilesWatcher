@@ -53,9 +53,10 @@ async function watchesLimitThrowing( test )
 
   var a = test.assetFor( false );
   a.shell.predefined.sync = 1;
+  a.reflect();
 
   a.shell( `sudo sysctl fs.inotify.max_user_watches=0` )
-  var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0 } );
+  var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0, onChange : () => {} } );
   await test.shouldThrowErrorAsync( watcher.resume() );
   a.shell( `sudo sysctl fs.inotify.max_user_watches=8192` )
   await test.mustNotThrowError( () => watcher.resume() );
