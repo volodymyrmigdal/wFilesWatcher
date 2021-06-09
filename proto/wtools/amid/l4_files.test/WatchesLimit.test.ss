@@ -51,14 +51,13 @@ async function watchesLimitThrowing( test )
     return;
   }
 
-  var beforeValue = WatchesLimit.getValue();
-  test.gt( beforeValue, 0 );
-  WatchesLimit.setValue( 0 );
+  var a = test.assetFor( false );
+  a.shell.predefined.sync = 1;
+
+  a.shell( `sudo sysctl fs.inotify.max_user_watches=0` )
   var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0 } );
   await test.shouldThrowErrorAsync( watcher.resume() );
-  WatchesLimit.setValue( beforeValue );
-  var value = WatchesLimit.getValue();
-  test.identical( value, beforeValue );
+  a.shell( `sudo sysctl fs.inotify.max_user_watches=8192` )
   await test.mustNotThrowError( () => watcher.resume() );
   await watcher.close();
 
@@ -76,7 +75,6 @@ const Proto =
 
   name : 'WatchesLimit',
   silencing : 1,
-  enabled : 0,
 
   onSuiteBegin,
   onSuiteEnd,
