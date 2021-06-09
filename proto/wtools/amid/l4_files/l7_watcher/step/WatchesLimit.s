@@ -6,89 +6,59 @@
   const fs = require( 'fs' );
   const cp = require( 'child_process' );
 
-  const args = process.argv.slice( 2 );
-  const command = args[ 0 ];
-
-  if( command === 'get' )
-  {
-    getValue();
-  }
-  else if( command === 'set' )
-  {
-    setValue();
-  }
-
   //
 
-  function getValue()
-  {
-    if( process.platform === 'linux' )
-    return getValueLinux();
-    if( process.platform === 'darwin' )
-    return getValueDarwin();
-  }
-
-  //
-
-  function setValue( ... args )
-  {
-    if( process.platform === 'linux' )
-    setValueLinux( ...args );
-    if( process.platform === 'darwin' )
-    setValueDarwin( ... args );
-  }
-
-  //
-
-  function getValueLinux()
+  function getLimitLinux()
   {
     let currentValue = fs.readFileSync( `/proc/sys/fs/inotify/max_user_watches` );
-    console.log( `Current max_user_watches: ${currentValue}` );
     return Number( currentValue );
   }
 
   //
 
-  function getValueDarwin()
+  function getLimitDarwin()
   {
     let maxfiles = execCollectingOutput( ` sysctl kern.maxfiles` ).toString();
     maxfiles = maxfiles.split( /\s+/ )[ 1 ];
     maxfiles = Number( maxfiles );
+
     let maxfilesperproc = execCollectingOutput( ` sysctl kern.maxfilesperproc` ).toString();
     maxfilesperproc = maxfilesperproc.split( /\s+/ )[ 1 ];
     maxfilesperproc = Number( maxfilesperproc );
 
-    console.log( `kern.maxfiles: ${maxfiles}` );
-    console.log( `kern.maxfilesperproc: ${maxfilesperproc}` );
-
-    return { current_maxfiles : maxfiles, current_maxfilesperproc : maxfilesperproc }
+    return { maxfiles, maxfilesperproc }
   }
 
   //
 
-  function setValueLinux( value, permanent )
+  function increaseLimit( permanent )
   {
-    if( value === undefined )
-    value = args[ 1 ];
     if( permanent === undefined )
-    permanent = Boolean( args[ 2 ] );
+    permanent = true;
+    else
+    permanent = Boolean( permanent );
 
-    const defaultValue = 1048576;
+    if( process.platform === 'linux' )
+    increaseLimitLinux( permanent );
+    else if( process.platform === 'darwin' )
+    increaseLimitDarwin( permanent );
+  }
 
-    getValueLinux();
+  //
 
-    value = Number.parseInt( value );
+  function increaseLimitLinux( permanent )
+  {
+    const value = 1048576;
 
-    if( !Number.isInteger( value ) )
-    value = defaultValue;
+    const currentLimit = getLimitLinux();
+
+    if( currentLimit >= value )
+    return;
 
     console.log( `Changing max_user_watches to ${value}` );
 
     if( permanent )
     {
-      if( value < 8192 )
-      throw `Not safe to set ${value} permanently.`
-
       exec( `sudo sh -c "echo fs.inotify.max_user_watches=${value} >> /etc/sysctl.conf"` )
       console.warn( 'The new value is permanent.' );
       console.warn( 'To disable it edit "fs.inotify.max_user_watches" line in your /etc/sysctl.conf file' );
@@ -101,55 +71,50 @@
 
     console.log( 'Reloading config file to avoid reboot' );
     exec( `sudo sysctl -p` );
-
-    getValueLinux();
   }
 
   //
 
-  // function setValueDarwin( maxfiles, maxfilesperproc, permanent )
-  function setValueDarwin()
+  function increaseLimitDarwin( permanent )
   {
-    getValueDarwin();
+    const maxfiles = 10485760;
+    const maxfilesperproc = 1048576;
 
-    // if( maxfiles === undefined )
-    // maxfiles = args[ 1 ];
-    // if( maxfilesperproc === undefined )
-    // maxfilesperproc = args[ 2 ]
-    // if( permanent === undefined )
-    // permanent = Boolean( args[ 3 ] );
+    const currentLimit = getLimitDarwin();
+    let changed = 0;
 
-    const defaultMaxfiles = 10485760;
-    const defaultMaxfilesperproc = 1048576;
+    if( currentLimit.maxfiles < maxfiles )
+    {
+      console.log( `Changing maxfiles to ${maxfiles}` );
+      changed = 1;
+      if( permanent )
+      exec( `sudo sh -c "echo kern.maxfiles=${maxfiles} >> /etc/sysctl.conf"` )
+      else
+      exec( `sudo sysctl -w kern.maxfiles=${maxfiles}` )
+    }
 
-    // maxfiles = Number.parseInt( maxfiles );
-    // maxfilesperproc = Number.parseInt( maxfilesperproc );
+    if( currentLimit.maxfilesperproc < maxfilesperproc )
+    {
+      console.log( `Changing maxfilesperproc to ${maxfilesperproc}` );
+      changed = 1;
+      if( permanent )
+      exec( `sudo sh -c "echo kern.maxfilesperproc=${maxfilesperproc} >> /etc/sysctl.conf"` )
+      else
+      exec( `sudo sysctl -w kern.maxfilesperproc=${maxfilesperproc}` )
+    }
 
-    // if( !Number.isInteger( maxfiles ) )
-    let maxfiles = defaultMaxfiles;
-
-
-    // if( !Number.isInteger( maxfilesperproc ) )
-    let maxfilesperproc = defaultMaxfilesperproc;
-
-    console.log( `Changing maxfiles to ${maxfiles}` );
-    console.log( `Changing maxfilesperproc to ${maxfilesperproc}` );
+    if( !changed )
+    return;
 
     if( permanent )
     {
-      exec( `sudo sh -c "echo kern.maxfiles=${maxfiles} >> /etc/sysctl.conf"` )
-      exec( `sudo sh -c "echo kern.maxfilesperproc=${maxfilesperproc} >> /etc/sysctl.conf"` )
       console.warn( 'The new values are permanent.' );
-      console.warn( 'To disable it edit lines "kern.maxfiles" and "kern.maxfilesperproc" in your /etc/sysctl.conf file' );
+      console.warn( 'To disable it edit lines "kern.maxfiles", "kern.maxfilesperproc" in your /etc/sysctl.conf file' );
     }
     else
     {
-      exec( `sudo sysctl -w kern.maxfiles=${maxfiles}` )
-      exec( `sudo sysctl -w kern.maxfilesperproc=${maxfilesperproc}` )
       console.warn( 'The new values will persist until next reboot.' )
     }
-
-    getValueDarwin();
   }
 
   //
@@ -168,9 +133,16 @@
 
   //
 
+  if( typeof module !== 'undefined' && !module.parent )
+  {
+    increaseLimit( process.argv[ 2 ] );
+  }
+
+  //
+
   module.exports =
   {
-    setValue,
+    increaseLimit,
     getValue
   }
 
