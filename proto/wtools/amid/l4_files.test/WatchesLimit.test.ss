@@ -45,7 +45,7 @@ async function watchesLimitThrowing( test )
 {
   /* - */
 
-  if( !_.process.insideTestContainer() ||  )
+  if( !_.process.insideTestContainer() )
   {
     test.true( true );
     return;
