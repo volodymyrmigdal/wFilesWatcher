@@ -173,7 +173,9 @@
 
   module.exports =
   {
-    increaseLimit
+    increaseLimit,
+    getLimitLinux,
+    getLimitDarwin
   }
 
 })()

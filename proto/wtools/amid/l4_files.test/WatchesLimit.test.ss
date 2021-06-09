@@ -66,19 +66,43 @@ async function watchesLimitThrowing( test )
   }
   else if( process.platform === 'darwin' )
   {
-    a.shell( `sudo sysctl -w kern.maxfiles=256` )
-    var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0, onChange : () => {} } );
-    await test.shouldThrowErrorAsync( watcher.resume() );
-    WatchesLimit.increaseLimit( false );
-    await test.mustNotThrowError( () => watcher.resume() );
-    await watcher.close();
+    var currentLimit = WatchesLimit.getLimitDarwin();
+    console.log( currentLimit )
+    if( currentLimit.maxfiles > 1000 )
+    {
+      test.true( true );
+    }
+    else
+    {
+      await createFiles( 1000 );
+      var watcher = _.files.watcher.fs.watch( a.abs( '.' ), { enabled : 0, onChange : () => {} } );
+      await test.shouldThrowErrorAsync( watcher.resume() );
+      WatchesLimit.increaseLimit( false );
+      await test.mustNotThrowError( () => watcher.resume() );
+      await watcher.close();
+    }
   }
-
-
+  else
+  {
+    test.true( true );
+  }
 
   /* - */
 
   return null;
+
+  /* - */
+
+  function createFiles( number )
+  {
+    let cons = [];
+    for( let i = 0; i < number; i++ )
+    {
+      let con = a.fileProvider.fileWrite({ filePath: a.abs( `file${i}` ), data : i.toString(), sync : 0 })
+      cons.push( con )
+    }
+    return _.Consequence.AndKeep( ... cons );
+  }
 }
 
 // --
