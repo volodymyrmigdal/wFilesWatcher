@@ -45,7 +45,7 @@ async function watchesLimitThrowing( test )
 {
   /* - */
 
-  if( !_.process.insideTestContainer() || process.platform != 'linux' )
+  if( !_.process.insideTestContainer() ||  )
   {
     test.true( true );
     return;
@@ -55,12 +55,26 @@ async function watchesLimitThrowing( test )
   a.shell.predefined.sync = 1;
   a.reflect();
 
-  a.shell( `sudo sysctl fs.inotify.max_user_watches=0` )
-  var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0, onChange : () => {} } );
-  await test.shouldThrowErrorAsync( watcher.resume() );
-  a.shell( `sudo sysctl fs.inotify.max_user_watches=8192` )
-  await test.mustNotThrowError( () => watcher.resume() );
-  await watcher.close();
+  if( process.platform === 'linux' )
+  {
+    a.shell( `sudo sysctl fs.inotify.max_user_watches=0` )
+    var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0, onChange : () => {} } );
+    await test.shouldThrowErrorAsync( watcher.resume() );
+    WatchesLimit.increaseLimit( false );
+    await test.mustNotThrowError( () => watcher.resume() );
+    await watcher.close();
+  }
+  else if( process.platform === 'darwin' )
+  {
+    a.shell( `sudo sysctl -w kern.maxfiles=256` )
+    var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0, onChange : () => {} } );
+    await test.shouldThrowErrorAsync( watcher.resume() );
+    WatchesLimit.increaseLimit( false );
+    await test.mustNotThrowError( () => watcher.resume() );
+    await watcher.close();
+  }
+
+
 
   /* - */
 
