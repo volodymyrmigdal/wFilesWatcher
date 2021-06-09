@@ -822,14 +822,15 @@ async function filePathReplacedFileByDir( test )
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
-    if( files.length > 2 )
+    if( files.length === 1 )
     eventReady.take( e );
   })
+  await _.time.out( context.t3 );
   a.fileProvider.fileDelete( filePath );
   a.fileProvider.dirMake( filePath );
   test.true( a.fileProvider.fileExists( filePath ) )
   await eventReady;
-  test.identical( files.length, 3 );
+  test.ge( files.length, 1 );
   await watcher.close();
 
   /* - */
@@ -1330,8 +1331,8 @@ const Proto =
     filePathMovedOutOfParent,
     filePathReaddedSame,
     filePathReplacedDirByFile,
+    filePathReplacedFileByDir,
 
-    // filePathReplacedFileByDir,
     filePathMultiple,
     filePathIsLink,
     filePathComplexTreeChangeNestedFile,
