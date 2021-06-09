@@ -147,6 +147,9 @@
 
   function boolFrom( src )
   {
+    if( src === true || src === false )
+    return src;
+
     src = src.toLowerCase();
     if( src === '0' )
     return false;
@@ -163,7 +166,6 @@
 
   if( typeof module !== 'undefined' && !module.parent )
   {
-    debugger
     increaseLimit( process.argv[ 2 ] );
   }
 
@@ -171,7 +173,9 @@
 
   module.exports =
   {
-    increaseLimit
+    increaseLimit,
+    getLimitLinux,
+    getLimitDarwin
   }
 
 })()
