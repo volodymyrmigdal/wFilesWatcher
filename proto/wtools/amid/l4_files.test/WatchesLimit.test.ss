@@ -45,7 +45,7 @@ async function watchesLimitThrowing( test )
 {
   /* - */
 
-  if( !_.process.insideTestContainer() || process.platform != 'linux' )
+  if( !_.process.insideTestContainer() )
   {
     test.true( true );
     return;
@@ -55,16 +55,54 @@ async function watchesLimitThrowing( test )
   a.shell.predefined.sync = 1;
   a.reflect();
 
-  a.shell( `sudo sysctl fs.inotify.max_user_watches=0` )
-  var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0, onChange : () => {} } );
-  await test.shouldThrowErrorAsync( watcher.resume() );
-  a.shell( `sudo sysctl fs.inotify.max_user_watches=8192` )
-  await test.mustNotThrowError( () => watcher.resume() );
-  await watcher.close();
+  if( process.platform === 'linux' )
+  {
+    a.shell( `sudo sysctl fs.inotify.max_user_watches=0` )
+    var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0, onChange : () => {} } );
+    await test.shouldThrowErrorAsync( watcher.resume() );
+    WatchesLimit.increaseLimit( false );
+    await test.mustNotThrowError( () => watcher.resume() );
+    await watcher.close();
+  }
+  else if( process.platform === 'darwin' )
+  {
+    var currentLimit = WatchesLimit.getLimitDarwin();
+    console.log( currentLimit )
+    if( currentLimit.maxfiles > 1000 )
+    {
+      test.true( true );
+    }
+    else
+    {
+      await createFiles( 1000 );
+      var watcher = _.files.watcher.fs.watch( a.abs( '.' ), { enabled : 0, onChange : () => {} } );
+      await test.shouldThrowErrorAsync( watcher.resume() );
+      WatchesLimit.increaseLimit( false );
+      await test.mustNotThrowError( () => watcher.resume() );
+      await watcher.close();
+    }
+  }
+  else
+  {
+    test.true( true );
+  }
 
   /* - */
 
   return null;
+
+  /* - */
+
+  function createFiles( number )
+  {
+    let cons = [];
+    for( let i = 0; i < number; i++ )
+    {
+      let con = a.fileProvider.fileWrite({ filePath: a.abs( `file${i}` ), data : i.toString(), sync : 0 })
+      cons.push( con )
+    }
+    return _.Consequence.AndKeep( ... cons );
+  }
 }
 
 // --
