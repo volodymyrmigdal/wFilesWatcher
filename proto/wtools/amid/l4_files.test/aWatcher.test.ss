@@ -614,16 +614,21 @@ async function filePathRenamed( test )
   a.fileProvider.dirMake( filePath );
   var eventReady = _.Consequence();
   await _.time.out( context.t1 );
+  var files = []
   var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
-    eventReady.take( e );
+    files.push( ... e.files )
+    if( files.length === 2 )
+    eventReady.take( null );
   })
+  await _.time.out( context.t3 );
   a.fileProvider.fileRename( filePath2, filePath );
-  test.false( a.fileProvider.fileExists( filePath ) )
-  var e = await eventReady;
-  test.identical( e.files.length, 1 );
-  test.identical( a.fileProvider.path.name( e.files[ 0 ].filePath ), 'fileToRename' );
+  await eventReady;
+  test.identical( files.length, 2 );
+  var names = files.map( ( f ) => _.path.fullName( f.filePath ) )
+  test.true( _.longHas( names, 'fileToRename' ) );
+  test.true( _.longHas( names, 'fileNewName' ) );
   await watcher.close();
 
   /* - */
