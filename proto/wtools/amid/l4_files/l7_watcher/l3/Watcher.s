@@ -123,6 +123,12 @@ function featuresForm()
 
   ready.then( () => self._featuresForm() )
 
+  ready.then( () =>
+  {
+    features._formed = 1;
+    return null;
+  })
+
   return ready;
 }
 

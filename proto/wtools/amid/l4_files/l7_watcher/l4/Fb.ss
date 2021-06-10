@@ -35,16 +35,98 @@ Self.shortName = 'WatcherFb';
 function _featuresForm()
 {
   let self = this;
-  let ready = _.take( null );
   let features = self.Features;
 
-  ready.then( () =>
+  features.recursion = true;
+
+  return _.Consequence.AndKeep
+  (
+    self._watchedDirRenameDetection(),
+  );
+}
+
+//
+
+function _watchedDirRenameDetection()
+{
+  let self = this;
+  let features = self.Features;
+
+  features.watchedDirRenameDetection = false;
+
+  let con1 = _.Consequence();
+
+  let tempDir = _.path.dirTemp();
+  let srcName = _.idWithDateAndTime();
+  let srcPath = _.path.join( tempDir, srcName );
+  let dstPath = _.path.join( tempDir, _.idWithDateAndTime() );
+
+  _.fileProvider.dirMake( srcPath );
+
+  let client = new Watchman.Client();
+
+  client.capabilityCheck({ optional : [], required : [ 'relative_root' ] }, con1.tolerantCallback() )
+
+  con1.thenGive( () =>
   {
-    features.recursion = true;
-    return null;
+    srcPath = _.fileProvider.pathResolveLinkFull( srcPath ).absolutePath;
+    client.command([ 'watch-project', _.path.nativize( srcPath ) ], ( err, resp ) =>
+    {
+      if( err )
+      return con1.error( err );
+
+      let subscriptionDescriptor =
+      {
+        expression: [ 'allof', [ 'match', '*' ] ],
+        fields: [ 'name', 'size', 'exists', 'type', 'new' ],
+        relative_path : resp.relative_path
+      };
+
+      client.command([ 'subscribe', resp.watch, 'defaultSub', subscriptionDescriptor ], con1.tolerantCallback() );
+    })
   })
 
-  return ready;
+  con1.thenGive( () =>
+  {
+    client.on( 'subscription', ( resp ) =>
+    {
+      if( resp.canceled )
+      return;
+
+      if( resp.is_fresh_instance )
+      return;
+
+      for( let i = 0; i < resp.files.length; i++ )
+      {
+        let file = resp.files[ i ];
+        if( file.name === srcName )
+        features.watchedDirRenameDetection = true;
+      }
+
+      con1.take( null );
+    })
+
+    _.fileProvider.fileRename( dstPath, srcPath );
+  })
+
+  let con2 = _.time.out( 500 );
+  let con = _.Consequence.OrTake( con1, con2 )
+
+  con.finally( async ( err, got ) =>
+  {
+    if( err )
+    _.errAttend( err );
+    _.fileProvider.filesDelete( dstPath );
+    let ready = _.take( null );
+    ready.thenGive( () => client.command( [ 'watch-del-all' ], ready.tolerantCallback() ) );
+    ready.thenGive( () => client.command( [ 'shutdown-server' ], ready.tolerantCallback() ) );
+    await ready;
+    if( err )
+    throw err;
+    return got;
+  })
+
+  return con;
 }
 
 //
@@ -53,6 +135,7 @@ function _enable()
 {
   let self = this;
   let ready = _.take( null );
+  let features = self.Features;
 
   if( self.enabled )
   {
@@ -77,7 +160,13 @@ function _enable()
     {
       let con = _.Consequence();
       cons.push( con );
-      self.client.command([ 'watch-project', filePath ], ( err, resp ) =>
+
+      if( !_.fileProvider.fileExists( filePath ) )
+      return con.error( _.err( `Error initiating watch: provided path doesn't exist.\nFile path: ${filePath}` ) )
+
+      let filePathToWatch = features.watchedDirRenameDetection ? filePath : _.path.dir( filePath );
+
+      self.client.command([ 'watch-project', _.path.nativize( filePathToWatch ) ], ( err, resp ) =>
       {
         if( err )
         return con.error( _.err( 'Error initiating watch:', err ) );
@@ -103,6 +192,12 @@ function _enable()
           filePath
         }
 
+        if( !features.watchedDirRenameDetection )
+        {
+          descriptor.relativeWatchPath = _.path.fullName( filePath ),
+          descriptor.ino = _.fileProvider.statRead( filePath ).ino;
+        }
+
         self.watcherArray.push( descriptor );
 
         con.take( null )
@@ -123,11 +218,13 @@ function _enable()
       if( self.subscriptionMap[ descriptor.watch ] )
       return;
 
+      let expression = [ 'anyof', [ 'match', '*' ] ];
+
       let subscriptionDescriptor =
       {
         /* Doc for fields: https://facebook.github.io/watchman/docs/cmd/query.html#available-fields */
-        expression : [ 'allof', [ 'match', '*' ] ],
-        fields : [ 'name', 'size', 'exists', 'type', 'new' ],
+        expression,
+        fields : [ 'name', 'size', 'exists', 'type', 'new', 'ino' ],
         relative_path : descriptor.relativePath
       };
 
@@ -153,6 +250,7 @@ function _enable()
 
   ready.then( () =>
   {
+
     self.client.on( 'subscription', ( resp ) =>
     {
       if( resp.canceled )
@@ -163,6 +261,24 @@ function _enable()
 
       resp.files.forEach( ( file ) =>
       {
+        if( !features.watchedDirRenameDetection )
+        {
+          let sub = self.subscriptionMap[ resp.root ];
+          let watchDescriptor = sub.watchDescriptor;
+
+          if( !_.strBegins( file.name, watchDescriptor.relativeWatchPath ) )
+          {
+            if( BigInt( file.ino ) !== watchDescriptor.ino )
+            return;
+
+            if( file.new )
+            {
+              watchDescriptor.ino = BigInt( file.ino );
+              watchDescriptor.relativeWatchPath = file.name;
+            }
+          }
+        }
+
         let record = Object.create( null );
         record.filePath = file.name;
         record.watchPath = resp.root;
@@ -197,7 +313,7 @@ function _enable()
     return self;
   })
 
-  ready.catch( ( err ) =>
+  ready.catch( async( err ) =>
   {
     _.errAttend( err );
 
@@ -206,12 +322,9 @@ function _enable()
     con.thenGive( () => self.client.command( [ 'watch-del-all' ], con.tolerantCallback() ) );
     con.thenGive( () => self.client.command( [ 'shutdown-server' ], con.tolerantCallback() ) );
 
-    con.then( () =>
-    {
-      throw err;
-    });
+    await con;
 
-    return con;
+    throw _.errLogOnce( err );
   })
 
   return ready;
@@ -433,6 +546,7 @@ let Restricts =
 let Extension =
 {
   _featuresForm,
+  _watchedDirRenameDetection,
 
   _resume,
   _pause,
