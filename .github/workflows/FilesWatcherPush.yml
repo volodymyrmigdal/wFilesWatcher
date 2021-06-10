@@ -56,6 +56,5 @@ jobs :
     - name : "Linux/Mac"
       if : matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
       run : |
-        brew update
         brew install watchman
         npm test
