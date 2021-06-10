@@ -176,12 +176,12 @@ function close()
 {
   let self = this;
 
-  _.assert( self.formed === 2 );
-
   let ready = _.take( self );
 
   if( !self.enabled )
   return ready;
+
+  _.assert( self.formed === 2 );
 
   ready.then( () => self._close() )
 
