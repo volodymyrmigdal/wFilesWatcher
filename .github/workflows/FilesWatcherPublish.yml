@@ -44,4 +44,18 @@ jobs :
       run : env
     - run : npm list
       continue-on-error : true
-    - run : npm test
+
+    - name : "Windows"
+      if : matrix.os == 'windows-latest'
+      run : |
+        wget https://github.com/facebook/watchman/releases/download/v2021.01.11.00/watchman-v2021.01.11.00-windows.zip -OutFile "$env:temp\watchman-v2021.01.11.00-windows.zip"
+        Expand-Archive "$env:temp\watchman-v2021.01.11.00-windows.zip" -DestinationPath "$env:temp\watchman"
+        $env:Path += ";C:\\Users\\runneradmin\\AppData\\Local\\Temp\\watchman\\bin"
+        npm test
+      shell : powershell
+
+    - name : "Linux/Mac"
+      if : matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+      run : |
+        brew install watchman
+        npm test
