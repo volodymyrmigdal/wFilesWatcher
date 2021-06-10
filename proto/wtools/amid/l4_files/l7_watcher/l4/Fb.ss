@@ -191,6 +191,23 @@ function _enable()
     return self;
   })
 
+  ready.catch( ( err ) =>
+  {
+    _.errAttend( err );
+
+    let con = _.take( null )
+
+    con.thenGive( () => self.client.command( [ 'watch-del-all' ], con.tolerantCallback() ) );
+    con.thenGive( () => self.client.command( [ 'shutdown-server' ], con.tolerantCallback() ) );
+
+    con.then( () =>
+    {
+      throw err;
+    });
+
+    return con;
+  })
+
   return ready;
 }
 
