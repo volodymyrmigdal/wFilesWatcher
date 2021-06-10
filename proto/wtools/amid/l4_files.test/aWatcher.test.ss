@@ -160,6 +160,7 @@ async function directory( test )
   var filePath = a.abs( 'create/dir' );
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   var eventReady = _.Consequence();
+  await _.time.out( context.t1 )
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ),( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
