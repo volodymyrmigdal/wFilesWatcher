@@ -162,6 +162,7 @@ async function directory( test )
   var eventReady = _.Consequence();
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ),( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) )
     eventReady.take( e )
   });
   a.fileProvider.dirMake( filePath );
@@ -917,8 +918,8 @@ async function filePathIsLink( test )
 
   test.case = 'soft link to terminal'
   a.reflect();
-  var filePathReal = a.abs( 'file' );
-  var filePath = a.abs( 'link' );
+  var filePathReal = a.abs( 'softToFile/file' );
+  var filePath = a.abs( 'softToFile/link' );
   a.fileProvider.fileWrite( filePathReal, 'file' )
   a.fileProvider.softLink( filePath, filePathReal )
   var eventReady = _.Consequence();
@@ -940,8 +941,8 @@ async function filePathIsLink( test )
 
   test.case = 'soft link to dir'
   a.reflect();
-  var filePathReal = a.abs( 'dir' );
-  var filePath = a.abs( 'link' );
+  var filePathReal = a.abs( 'softToDir/dir' );
+  var filePath = a.abs( 'softToDir/link' );
   a.fileProvider.dirMake( filePathReal )
   a.fileProvider.softLink( filePath, filePathReal )
   var eventReady = _.Consequence();
@@ -962,8 +963,8 @@ async function filePathIsLink( test )
 
   test.case = 'hard link'
   a.reflect();
-  var filePathReal = a.abs( 'file' );
-  var filePath = a.abs( 'link' );
+  var filePathReal = a.abs( 'hardLink/file' );
+  var filePath = a.abs( 'hardLink/link' );
   a.fileProvider.fileWrite( filePathReal, 'file' )
   a.fileProvider.hardLink( filePath, filePathReal )
   var eventReady = _.Consequence();
@@ -972,13 +973,14 @@ async function filePathIsLink( test )
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
+    if( files.length === 2)
     eventReady.take( e );
   })
   await _.time.out( context.t3 * 2 ) //xxx: investigate
   a.fileProvider.fileWrite( filePathReal, 'a' );
   test.true( a.fileProvider.areHardLinked( filePath, filePathReal ) )
   await eventReady;
-  test.identical( files.length, 1 );
+  test.identical( files.length, 2 );
   await watcher.close();
 
   /* - */
