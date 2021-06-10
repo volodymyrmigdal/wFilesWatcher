@@ -53,6 +53,7 @@ async function terminalFile( test )
   var eventReady = _.Consequence();
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) );
     eventReady.take( e )
   });
   a.fileProvider.fileWrite( filePath, 'a' );
@@ -74,6 +75,7 @@ async function terminalFile( test )
   var eventReady = _.Consequence();
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ),( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) );
     eventReady.take( e )
   });
   a.fileProvider.fileWrite( filePath, 'ab' );
@@ -97,6 +99,7 @@ async function terminalFile( test )
   var events = [];
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) );
     events.push( e );
     if( events.length > 1 )
     eventReady.take( null )
@@ -126,6 +129,7 @@ async function terminalFile( test )
   var eventReady = _.Consequence();
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ),( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) );
     eventReady.take( e )
   });
   a.fileProvider.filesDelete( filePath );
@@ -1315,6 +1319,8 @@ const Proto =
 
   tests :
   {
+    // renameOrder, xxx: implement
+
     terminalFile,
     directory,
     softLinkCreate,

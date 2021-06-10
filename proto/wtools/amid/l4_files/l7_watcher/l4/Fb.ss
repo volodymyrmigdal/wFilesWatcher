@@ -32,6 +32,23 @@ Self.shortName = 'WatcherFb';
 
 //
 
+function _featuresForm()
+{
+  let self = this;
+  let ready = _.take( null );
+  let features = self.Features;
+
+  ready.then( () =>
+  {
+    features.recursion = true;
+    return null;
+  })
+
+  return ready;
+}
+
+//
+
 function _enable()
 {
   let self = this;
@@ -76,7 +93,7 @@ function _enable()
         // dir_of_interest with another watch at a higher level in the
         // tree, so it is very important to record the `relative_path`
         // returned in resp
-        logger.log( 'watch established on ', resp.watch, ' relative_path', resp.relative_path );
+        // logger.log( 'watch established on ', resp.watch, ' relative_path', resp.relative_path );
 
         let descriptor =
         {
@@ -143,27 +160,26 @@ function _enable()
       if( resp.is_fresh_instance )
       return;
 
-      let files = resp.files.map( ( file ) =>
+      resp.files.forEach( ( file ) =>
       {
         let record = Object.create( null );
         record.filePath = file.name;
         record.watchPath = resp.root;
         record.size = file.size;
         record.native = file;
-        return record;
+
+        let e =
+        {
+          kind : 'file.change',
+          watcher : self,
+          reason : null,
+          files : [ record ]
+        }
+
+         // self.eventGive( e );
+        self.manager._onChange( e );
+        self.onChange( e );
       })
-
-      let e =
-      {
-        kind : 'file.change',
-        watcher : self,
-        reason : null,
-        files
-      }
-
-      // self.eventGive( e );
-      self.manager._onChange( e );
-      self.onChange( e );
     });
 
     return null;
@@ -393,6 +409,8 @@ let Restricts =
 
 let Extension =
 {
+  _featuresForm,
+
   _resume,
   _pause,
   _close,

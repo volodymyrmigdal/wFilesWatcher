@@ -217,6 +217,18 @@ function onIdle( time, cb )
 
 //
 
+function exportString() //xxx: implement and cover with test
+{
+  _.assert( 0, 'implement and cover with test')
+}
+
+exportString.defaults =
+{
+  it : null
+}
+
+//
+
 // --
 // extension
 // --
@@ -275,6 +287,8 @@ let Extension =
   _onError,
 
   onIdle,
+
+  exportString,
 
   Composes,
   Associates,

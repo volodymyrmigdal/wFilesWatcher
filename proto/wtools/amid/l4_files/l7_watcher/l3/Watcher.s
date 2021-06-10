@@ -70,7 +70,7 @@ function unform()
   let self = this;
 
   _.assert( arguments.length === 0, 'Expects no arguments' );
-  _.assert( !!self.formed );
+  _.assert( self.formed === 1 );
 
   /* begin */
 
@@ -142,6 +142,7 @@ function resume()
   ready.then( () =>
   {
     self.paused = false;
+    self.formed = 2;
     return self;
   })
 
@@ -175,6 +176,8 @@ function close()
 {
   let self = this;
 
+  _.assert( self.formed === 2 );
+
   let ready = _.take( self );
 
   if( !self.enabled )
@@ -184,9 +187,11 @@ function close()
 
   ready.then( () =>
   {
-    self.manager._remove( self );
+    // self.manager._remove( self );
     self.enabled = false;
     self.closed = true;
+    self.formed = 1;
+    self.unform();
     return self;
   });
 
@@ -229,6 +234,15 @@ let Features =
 
 //
 
+let ChangeType =
+{
+  'edit' : 1,
+  'add' : 2,
+  'delete' : 3,
+}
+
+//
+
 let Composes =
 {
   filePath : null,
@@ -259,7 +273,8 @@ let Restricts =
 
 let Statics =
 {
-  Features
+  Features,
+  ChangeType
 }
 
 // let Events =
