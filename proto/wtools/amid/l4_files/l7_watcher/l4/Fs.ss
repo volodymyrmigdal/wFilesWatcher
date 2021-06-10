@@ -282,6 +282,8 @@ function _watcherRegisterCallbacks( watcherDescriptor )
 
   watcher.on( 'error', function( err )
   {
+    console.log( err.code );
+
     let e =
     {
       kind : 'error',
