@@ -236,7 +236,7 @@ let Features =
 
 let ChangeType =
 {
-  'edit' : 1,
+  'modify' : 1,
   'add' : 2,
   'delete' : 3,
 }

@@ -125,8 +125,9 @@ function _enable()
 
       let subscriptionDescriptor =
       {
-        expression: [ 'allof', [ 'match', '*' ] ],
-        fields: [ 'name', 'size', 'exists', 'type' ],
+        /* Doc for fields: https://facebook.github.io/watchman/docs/cmd/query.html#available-fields */
+        expression : [ 'allof', [ 'match', '*' ] ],
+        fields : [ 'name', 'size', 'exists', 'type', 'new' ],
         relative_path : descriptor.relativePath
       };
 
@@ -168,15 +169,20 @@ function _enable()
         record.size = file.size;
         record.native = file;
 
+        record.changeType = 'modify';
+
+        if( !file.exists )
+        record.changeType = 'delete';
+        else if( file.new )
+        record.changeType = 'add'
+
         let e =
         {
           kind : 'file.change',
           watcher : self,
-          reason : null,
           files : [ record ]
         }
 
-         // self.eventGive( e );
         self.manager._onChange( e );
         self.onChange( e );
       })
