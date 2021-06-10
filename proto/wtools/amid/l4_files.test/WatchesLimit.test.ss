@@ -45,26 +45,64 @@ async function watchesLimitThrowing( test )
 {
   /* - */
 
-  if( !_.process.insideTestContainer() || process.platform != 'linux' )
+  if( !_.process.insideTestContainer() )
   {
     test.true( true );
     return;
   }
 
-  var beforeValue = WatchesLimit.getValue();
-  test.gt( beforeValue, 0 );
-  WatchesLimit.setValue( 0 );
-  var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0 } );
-  await test.shouldThrowErrorAsync( watcher.resume() );
-  WatchesLimit.setValue( beforeValue );
-  var value = WatchesLimit.getValue();
-  test.identical( value, beforeValue );
-  await test.mustNotThrowError( () => watcher.resume() );
-  await watcher.close();
+  var a = test.assetFor( false );
+  a.shell.predefined.sync = 1;
+  a.reflect();
+
+  if( process.platform === 'linux' )
+  {
+    a.shell( `sudo sysctl fs.inotify.max_user_watches=0` )
+    var watcher = _.files.watcher.fs.watch( __dirname, { enabled : 0, onChange : () => {} } );
+    await test.shouldThrowErrorAsync( watcher.resume() );
+    WatchesLimit.increaseLimit( false );
+    await test.mustNotThrowError( () => watcher.resume() );
+    await watcher.close();
+  }
+  else if( process.platform === 'darwin' )
+  {
+    var currentLimit = WatchesLimit.getLimitDarwin();
+    console.log( currentLimit )
+    if( currentLimit.maxfiles > 1000 )
+    {
+      test.true( true );
+    }
+    else
+    {
+      await createFiles( 1000 );
+      var watcher = _.files.watcher.fs.watch( a.abs( '.' ), { enabled : 0, onChange : () => {} } );
+      await test.shouldThrowErrorAsync( watcher.resume() );
+      WatchesLimit.increaseLimit( false );
+      await test.mustNotThrowError( () => watcher.resume() );
+      await watcher.close();
+    }
+  }
+  else
+  {
+    test.true( true );
+  }
 
   /* - */
 
   return null;
+
+  /* - */
+
+  function createFiles( number )
+  {
+    let cons = [];
+    for( let i = 0; i < number; i++ )
+    {
+      let con = a.fileProvider.fileWrite({ filePath: a.abs( `file${i}` ), data : i.toString(), sync : 0 })
+      cons.push( con )
+    }
+    return _.Consequence.AndKeep( ... cons );
+  }
 }
 
 // --
@@ -76,7 +114,6 @@ const Proto =
 
   name : 'WatchesLimit',
   silencing : 1,
-  enabled : 0,
 
   onSuiteBegin,
   onSuiteEnd,
