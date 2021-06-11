@@ -69,8 +69,6 @@ function _watchedDirRenameDetection()
 
   client.capabilityCheck({ optional : [], required : [ 'relative_root' ] }, con1.tolerantCallback() )
 
-  client.on( 'err', ( err ) => _.errLogOnce( err ) )
-
   con1.thenGive( () =>
   {
     srcPath = _.fileProvider.pathResolveLinkFull( srcPath ).absolutePath;
@@ -125,6 +123,11 @@ function _watchedDirRenameDetection()
     let ready = _.take( null );
     ready.thenGive( () => client.command( [ 'watch-del-all' ], ready.tolerantCallback() ) );
     ready.thenGive( () => client.command( [ 'shutdown-server' ], ready.tolerantCallback() ) );
+    ready.thenGive( () =>
+    {
+      client.on( 'end', () => ready.take( null ) );
+      client.end();
+    });
     await ready;
     if( err )
     throw err;
@@ -151,8 +154,6 @@ function _enable()
   ready.then( () =>
   {
     self.client = new Watchman.Client();
-
-    self.client.on( 'err', ( err ) => _.errLogOnce( err ) )
 
     let con = _.Consequence();
     self.client.capabilityCheck({ optional : [], required : [ 'relative_root' ] }, con.tolerantCallback() )
@@ -356,6 +357,11 @@ function _enable()
 
     con.thenGive( () => self.client.command( [ 'watch-del-all' ], con.tolerantCallback() ) );
     con.thenGive( () => self.client.command( [ 'shutdown-server' ], con.tolerantCallback() ) );
+    ready.thenGive( () =>
+    {
+      client.on( 'end', () => con.take( null ) );
+      client.end();
+    });
 
     await con;
 
