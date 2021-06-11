@@ -230,7 +230,7 @@ function close()
 // extension
 // --
 
-let Features =
+let FeaturesTemplate =
 {
   recursion : null,
   watchedDirRenameDetection : null,
@@ -279,7 +279,7 @@ let Restricts =
 
 let Statics =
 {
-  Features,
+  FeaturesTemplate,
   ChangeType
 }
 

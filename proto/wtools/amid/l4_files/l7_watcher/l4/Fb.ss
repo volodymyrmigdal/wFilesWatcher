@@ -556,7 +556,9 @@ let Composes =
 
 let Statics =
 {
-  watch
+  watch,
+
+  Features : Object.create( Parent.FeaturesTemplate )
 }
 
 //
