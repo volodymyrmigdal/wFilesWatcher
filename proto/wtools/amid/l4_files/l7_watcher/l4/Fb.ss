@@ -164,7 +164,10 @@ function _enable()
       if( !_.fileProvider.fileExists( filePath ) )
       return con.error( _.err( `Error initiating watch: provided path doesn't exist.\nFile path: ${filePath}` ) )
 
-      let filePathToWatch = features.watchedDirRenameDetection ? filePath : _.path.dir( filePath );
+      let filePathToWatch = filePath;
+
+      if( !features.watchedDirRenameDetection || !_.fileProvider.isDir( filePathToWatch ) )
+      filePathToWatch = _.path.dir( filePathToWatch );
 
       self.client.command([ 'watch-project', _.path.nativize( filePathToWatch ) ], ( err, resp ) =>
       {
@@ -224,7 +227,7 @@ function _enable()
       {
         /* Doc for fields: https://facebook.github.io/watchman/docs/cmd/query.html#available-fields */
         expression,
-        fields : [ 'name', 'size', 'exists', 'type', 'new', 'ino' ],
+        fields : [ 'name', 'size', 'exists', 'type', 'new', 'ino', 'mtime_ms' ],
         relative_path : descriptor.relativePath
       };
 
@@ -259,13 +262,26 @@ function _enable()
       if( resp.is_fresh_instance )
       return;
 
+      let sub = self.subscriptionMap[ resp.root ];
+      let watchDescriptor = sub.watchDescriptor;
+      let oroot = resp.root;
+      let files = [];
+      let terminals = [];
+
       resp.files.forEach( ( file ) =>
       {
+        if( file.type === 'd' )
+        files.push( file )
+        else
+        terminals.push( file )
+      });
+      files.push( ... terminals );
+
+      files.forEach( ( file ) =>
+      {
+        debugger
         if( !features.watchedDirRenameDetection )
         {
-          let sub = self.subscriptionMap[ resp.root ];
-          let watchDescriptor = sub.watchDescriptor;
-
           if( !_.strBegins( file.name, watchDescriptor.relativeWatchPath ) )
           {
             if( BigInt( file.ino ) !== watchDescriptor.ino )
@@ -276,6 +292,18 @@ function _enable()
               watchDescriptor.ino = BigInt( file.ino );
               watchDescriptor.relativeWatchPath = file.name;
             }
+          }
+
+          if( BigInt( file.ino ) === watchDescriptor.ino )
+          {
+            let isDir = file.type === 'd';
+            if( isDir && !file.new && file.exists )
+            return;
+          }
+          else
+          {
+            resp.root = _.path.join( oroot, watchDescriptor.relativeWatchPath );
+            file.name = _.path.relative( watchDescriptor.relativeWatchPath, file.name );
           }
         }
 
