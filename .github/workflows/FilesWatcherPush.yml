@@ -13,7 +13,7 @@ jobs :
     strategy :
       fail-fast : false
       matrix :
-        os : [ windows-latest, macos-latest ]
+        os : [ ubuntu-latest, windows-latest, macos-latest ]
         node-version : [ 14.x ]
     if : "!startsWith( github.event.head_commit.message, 'version' ) && !startsWith( github.event.head_commit.message, '.' )"
     runs-on : ${{ matrix.os }}
@@ -30,27 +30,28 @@ jobs :
       uses : actions/setup-node@v1
       with :
         node-version : ${{ matrix.node-version }}
-    - name : Save npm version
-      id : getnpmver
-      run : |
-        echo "::set-output name=npmver::$(npm -v)"
-    - name : Update npm if current version is 6
-      if : "startsWith( steps.getnpmver.outputs.npmver, '6.' )"
-      run : npm install -g npm@latest-6
-    - run : npm -g i willbe@stable
-    - run : will .npm.install
-    - name : Environment
-      run : env
-    - run : npm list
-      continue-on-error : true
+    # - name : Save npm version
+    #   id : getnpmver
+    #   run : |
+    #     echo "::set-output name=npmver::$(npm -v)"
+    # - name : Update npm if current version is 6
+    #   if : "startsWith( steps.getnpmver.outputs.npmver, '6.' )"
+    #   run : npm install -g npm@latest-6
+    # - run : npm -g i willbe@stable
+    # - run : will .npm.install
+    # - name : Environment
+    #   run : env
+    # - run : npm list
+    #   continue-on-error : true
 
     - name : "Windows"
       if : matrix.os == 'windows-latest'
       run : |
-        wget https://github.com/facebook/watchman/releases/download/v2021.01.11.00/watchman-v2021.01.11.00-windows.zip -OutFile "$env:temp/watchman-v2021.01.11.00-windows.zip"
-        Expand-Archive "$env:temp/watchman-v2021.01.11.00-windows.zip" -DestinationPath "$env:temp/watchman"
-        $env:Path += ";" + "$env:temp/watchman/bin"
-        where watchman
+        wget https://github.com/facebook/watchman/releases/download/v2021.01.11.00/watchman-v2021.01.11.00-windows.zip -OutFile "$env:temp\watchman-v2021.01.11.00-windows.zip"
+        Expand-Archive "$env:temp\watchman-v2021.01.11.00-windows.zip" -DestinationPath "$env:temp\watchman"
+        $env:Path += ";C:\\Users\\runneradmin\\AppData\\Local\\Temp\\watchman\\bin"
+        C:\\Users\\runneradmin\\AppData\\Local\\Temp\\watchman\\bin\\watchman.exe -v
+        watchman -v
         npm test
       shell : powershell
 
