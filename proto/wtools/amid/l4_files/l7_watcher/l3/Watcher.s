@@ -70,7 +70,7 @@ function unform()
   let self = this;
 
   _.assert( arguments.length === 0, 'Expects no arguments' );
-  _.assert( !!self.formed );
+  _.assert( self.formed === 1 );
 
   /* begin */
 
@@ -123,6 +123,12 @@ function featuresForm()
 
   ready.then( () => self._featuresForm() )
 
+  ready.then( () =>
+  {
+    features._formed = 1;
+    return null;
+  })
+
   return ready;
 }
 
@@ -142,6 +148,7 @@ function resume()
   ready.then( () =>
   {
     self.paused = false;
+    self.formed = 2;
     return self;
   })
 
@@ -180,13 +187,17 @@ function close()
   if( !self.enabled )
   return ready;
 
+  _.assert( self.formed === 2 );
+
   ready.then( () => self._close() )
 
   ready.then( () =>
   {
-    self.manager._remove( self );
+    // self.manager._remove( self );
     self.enabled = false;
     self.closed = true;
+    self.formed = 1;
+    self.unform();
     return self;
   });
 
@@ -219,12 +230,21 @@ function close()
 // extension
 // --
 
-let Features =
+let FeaturesTemplate =
 {
   recursion : null,
   watchedDirRenameDetection : null,
   watchedSymlinkChangeDetection : null,
   _formed : 0
+}
+
+//
+
+let ChangeType =
+{
+  'modify' : 1,
+  'add' : 2,
+  'delete' : 3,
 }
 
 //
@@ -259,7 +279,8 @@ let Restricts =
 
 let Statics =
 {
-  Features
+  FeaturesTemplate,
+  ChangeType
 }
 
 // let Events =

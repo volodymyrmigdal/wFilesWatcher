@@ -53,6 +53,7 @@ async function terminalFile( test )
   var eventReady = _.Consequence();
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) );
     eventReady.take( e )
   });
   a.fileProvider.fileWrite( filePath, 'a' );
@@ -74,6 +75,7 @@ async function terminalFile( test )
   var eventReady = _.Consequence();
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ),( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) );
     eventReady.take( e )
   });
   a.fileProvider.fileWrite( filePath, 'ab' );
@@ -97,6 +99,7 @@ async function terminalFile( test )
   var events = [];
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) );
     events.push( e );
     if( events.length > 1 )
     eventReady.take( null )
@@ -126,6 +129,7 @@ async function terminalFile( test )
   var eventReady = _.Consequence();
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ),( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) );
     eventReady.take( e )
   });
   a.fileProvider.filesDelete( filePath );
@@ -156,8 +160,10 @@ async function directory( test )
   var filePath = a.abs( 'create/dir' );
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   var eventReady = _.Consequence();
+  await _.time.out( context.t1 )
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ),( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) )
     eventReady.take( e )
   });
   a.fileProvider.dirMake( filePath );
@@ -594,8 +600,8 @@ async function filePathRenamed( test )
 
   test.case = 'renamed before watch resumed'
   a.reflect();
-  var filePath = a.abs( 'fileToRename' );
-  var filePath2 = a.abs( 'fileNewName' );
+  var filePath = a.abs( 'fileToRename1' );
+  var filePath2 = a.abs( 'fileNewName1' );
   a.fileProvider.dirMake( filePath );
   var watcher = await context.watcher.watch( filePath, { onChange : () => {}, enabled : 0 } );
   a.fileProvider.fileRename( filePath2, filePath );
@@ -605,21 +611,26 @@ async function filePathRenamed( test )
 
   test.case = 'renamed after watch resumed'
   a.reflect();
-  var filePath = a.abs( 'fileToRename' );
-  var filePath2 = a.abs( 'fileNewName' );
+  var filePath = a.abs( 'fileToRename2' );
+  var filePath2 = a.abs( 'fileNewName2' );
   a.fileProvider.dirMake( filePath );
   var eventReady = _.Consequence();
   await _.time.out( context.t1 );
+  var files = []
   var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
-    eventReady.take( e );
+    files.push( ... e.files )
+    if( files.length === 2 )
+    eventReady.take( null );
   })
+  await _.time.out( context.t3 );
   a.fileProvider.fileRename( filePath2, filePath );
-  test.false( a.fileProvider.fileExists( filePath ) )
-  var e = await eventReady;
-  test.identical( e.files.length, 1 );
-  test.identical( a.fileProvider.path.name( e.files[ 0 ].filePath ), 'fileToRename' );
+  await eventReady;
+  test.identical( files.length, 2 );
+  var names = files.map( ( f ) => _.path.fullName( f.filePath ) )
+  test.true( _.longHas( names, 'fileToRename2' ) );
+  test.true( _.longHas( names, 'fileNewName2' ) );
   await watcher.close();
 
   /* - */
@@ -729,17 +740,21 @@ async function filePathReaddedSame( test )
   var filePath2 = a.abs( 'fileNameNew' );
   a.fileProvider.dirMake( filePath );
   var eventReady = _.Consequence();
+  var files = [];
   var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
-    eventReady.take( e );
+    files.push( ... e.files)
+    if( files.length === 1 )
+    eventReady.take( null );
   })
   a.fileProvider.fileRename( filePath2, filePath );
+  await _.time.out( context.t3 )
   a.fileProvider.fileRename( filePath, filePath2 );
   test.true( a.fileProvider.fileExists( filePath ) )
-  var e = await eventReady;
-  test.identical( e.files.length, 1 );
-  test.identical( path.name( e.files[ 0 ].filePath ), 'fileNameOld' );
+  await eventReady;
+  test.ge( files.length, 1 );
+  test.identical( path.name( files[ 0 ].filePath ), 'fileNameOld' );
   await watcher.close();
 
   /* - */
@@ -750,17 +765,21 @@ async function filePathReaddedSame( test )
   var filePath2 = a.abs( 'fileNameNew' );
   a.fileProvider.dirMake( filePath );
   var eventReady = _.Consequence();
+  var files = [];
   var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
-    eventReady.take( e );
+    files.push( ... e.files )
+    if( _.path.name( e.files[ 0 ].filePath ) === 'file' )
+    eventReady.take( null );
   })
   a.fileProvider.fileRename( filePath2, filePath );
+  await _.time.out( context.t3 )
   a.fileProvider.fileRename( filePath, filePath2 );
   test.true( a.fileProvider.fileExists( filePath ) )
   a.fileProvider.fileWrite( a.abs( 'fileNameOld/file' ), 'file' );
-  var e = await eventReady;
-  test.identical( e.files.length, 1 );
+  await eventReady;
+  test.ge( files.length, 1 );
   await watcher.close();
 
   /* - */
@@ -908,8 +927,8 @@ async function filePathIsLink( test )
 
   test.case = 'soft link to terminal'
   a.reflect();
-  var filePathReal = a.abs( 'file' );
-  var filePath = a.abs( 'link' );
+  var filePathReal = a.abs( 'softToFile/file' );
+  var filePath = a.abs( 'softToFile/link' );
   a.fileProvider.fileWrite( filePathReal, 'file' )
   a.fileProvider.softLink( filePath, filePathReal )
   var eventReady = _.Consequence();
@@ -931,8 +950,8 @@ async function filePathIsLink( test )
 
   test.case = 'soft link to dir'
   a.reflect();
-  var filePathReal = a.abs( 'dir' );
-  var filePath = a.abs( 'link' );
+  var filePathReal = a.abs( 'softToDir/dir' );
+  var filePath = a.abs( 'softToDir/link' );
   a.fileProvider.dirMake( filePathReal )
   a.fileProvider.softLink( filePath, filePathReal )
   var eventReady = _.Consequence();
@@ -953,16 +972,18 @@ async function filePathIsLink( test )
 
   test.case = 'hard link'
   a.reflect();
-  var filePathReal = a.abs( 'file' );
-  var filePath = a.abs( 'link' );
+  var filePathReal = a.abs( 'hardLink/file' );
+  var filePath = a.abs( 'hardLink/link' );
   a.fileProvider.fileWrite( filePathReal, 'file' )
   a.fileProvider.hardLink( filePath, filePathReal )
   var eventReady = _.Consequence();
   var files = [];
+  await _.time.out( context.t1 );
   var watcher = await context.watcher.watch( _.path.dir( filePath ), ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
+    if( files.length === 1 )
     eventReady.take( e );
   })
   await _.time.out( context.t3 * 2 ) //xxx: investigate
@@ -1124,7 +1145,8 @@ async function filePathComplexTreeDeleteNestedDir( test )
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
-    eventReady.take( e );
+    if( files.length === 1 )
+    eventReady.take( null );
   })
   a.fileProvider.filesDelete( path.join( filePath, 'dir0' ) );
   await eventReady;
@@ -1315,6 +1337,8 @@ const Proto =
 
   tests :
   {
+    // renameOrder, xxx: implement
+
     terminalFile,
     directory,
     softLinkCreate,

@@ -44,4 +44,5 @@ jobs :
       run : env
     - run : npm list
       continue-on-error : true
-    - run : node proto/wtools/amid/l4_files.test/WatchesLimit.test.ss v:10
+    - run : node proto/wtools/amid/l4_files.test/Fs.test.ss r:filePathRenamed v:10
+
