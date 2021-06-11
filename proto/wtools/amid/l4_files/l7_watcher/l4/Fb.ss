@@ -56,7 +56,9 @@ function _watchedDirRenameDetection()
 
   let con1 = _.Consequence();
 
-  let tempDir = _.path.dirTemp();
+  // let tempDir = _.path.dirTemp();
+  let tempDir = _.path.tempOpen( _.path.join( __dirname, '../..'  ), 'FbWatcher' );
+
   let srcName = _.idWithDateAndTime();
   let srcPath = _.path.join( tempDir, srcName );
   let dstPath = _.path.join( tempDir, _.idWithDateAndTime() );
@@ -117,6 +119,7 @@ function _watchedDirRenameDetection()
     if( err )
     _.errAttend( err );
     _.fileProvider.filesDelete( dstPath );
+    _.path.tempClose( tempDir );
     let ready = _.take( null );
     ready.thenGive( () => client.command( [ 'watch-del-all' ], ready.tolerantCallback() ) );
     ready.thenGive( () => client.command( [ 'shutdown-server' ], ready.tolerantCallback() ) );
