@@ -13,7 +13,8 @@ jobs :
     strategy :
       fail-fast : false
       matrix :
-        os : [ ubuntu-latest, windows-latest, macos-latest ]
+        # os : [ ubuntu-latest, windows-latest, macos-latest ]
+        os : [ windows-latest ]
         node-version : [ 14.x ]
     if : "!startsWith( github.event.head_commit.message, 'version' ) && !startsWith( github.event.head_commit.message, '.' )"
     runs-on : ${{ matrix.os }}
@@ -30,6 +31,8 @@ jobs :
       uses : actions/setup-node@v1
       with :
         node-version : ${{ matrix.node-version }}
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
     - name : Save npm version
       id : getnpmver
       run : |
@@ -48,11 +51,9 @@ jobs :
       if : matrix.os == 'windows-latest'
       run : |
         choco install watchman
-        npm test
       shell : powershell
 
     - name : "Linux/Mac"
       if : matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
       run : |
         brew install watchman
-        npm test
