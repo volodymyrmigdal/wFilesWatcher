@@ -69,6 +69,8 @@ function _watchedDirRenameDetection()
 
   client.capabilityCheck({ optional : [], required : [ 'relative_root' ] }, con1.tolerantCallback() )
 
+  client.on( 'err', ( err ) => _.errLogOnce( err ) )
+
   con1.thenGive( () =>
   {
     srcPath = _.fileProvider.pathResolveLinkFull( srcPath ).absolutePath;
@@ -149,6 +151,8 @@ function _enable()
   ready.then( () =>
   {
     self.client = new Watchman.Client();
+
+    self.client.on( 'err', ( err ) => _.errLogOnce( err ) )
 
     let con = _.Consequence();
     self.client.capabilityCheck({ optional : [], required : [ 'relative_root' ] }, con.tolerantCallback() )
