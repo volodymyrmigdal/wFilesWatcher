@@ -59,6 +59,9 @@
 
     console.log( `Changing max_user_watches to ${value}` );
 
+    if( !DRY )
+    exec( `sudo sysctl fs.inotify.max_user_watches=${value}`)
+
     if( permanent )
     {
       if( !DRY )
@@ -68,12 +71,11 @@
     }
     else
     {
-      if( !DRY )
-      exec( `sudo sysctl fs.inotify.max_user_watches=${value}`)
       console.warn( 'The new value will persist until next reboot.' )
     }
 
     console.log( 'Reloading config file to avoid reboot' );
+
     if( !DRY )
     exec( `sudo sysctl -p` );
   }
@@ -95,10 +97,9 @@
 
       if( !DRY )
       {
+        exec( `sudo sysctl -w kern.maxfiles=${maxfiles}` )
         if( permanent )
         exec( `sudo sh -c "echo kern.maxfiles=${maxfiles} >> /etc/sysctl.conf"` )
-        else
-        exec( `sudo sysctl -w kern.maxfiles=${maxfiles}` )
       }
     }
 
@@ -108,10 +109,9 @@
       changed = 1;
       if( !DRY )
       {
+        exec( `sudo sysctl -w kern.maxfilesperproc=${maxfilesperproc}` )
         if( permanent )
         exec( `sudo sh -c "echo kern.maxfilesperproc=${maxfilesperproc} >> /etc/sysctl.conf"` )
-        else
-        exec( `sudo sysctl -w kern.maxfilesperproc=${maxfilesperproc}` )
       }
     }
 

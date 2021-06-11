@@ -17,8 +17,7 @@
   {
     "test" : "wtest .run 'proto/**' rapidity:-1",
     "docgen" : "wdocgen proto",
-    "watches.limit.get" : "node proto/wtools/amid/l4_files/l7_watcher/step/WatchesLimit.s get",
-    "watches.limit.set" : "node proto/wtools/amid/l4_files/l7_watcher/step/WatchesLimit.s set"
+    "watches.limit.increase" : "node proto/wtools/amid/l4_files/l7_watcher/step/WatchesLimit.s"
   },
   "repository" :
   {
