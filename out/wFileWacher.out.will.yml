@@ -3,8 +3,8 @@ root:
   - wFileWacher.out
 consistency:
   ../will.yml: &ref_0
-    hash: 3f2d371ba23ec807207455aab9b885b2
-    size: 7256
+    hash: e6d6996c220122651ecceb969676e866
+    size: 7167
 module:
   wFileWacher.out:
     about:
@@ -35,8 +35,7 @@ module:
       npm.scripts: &ref_4
         test: 'wtest .run ''proto/**'' rapidity:-1'
         docgen: wdocgen .build proto
-        watches.limit.get: node proto/wtools/amid/l4_files/l7_watcher/step/WatchesLimit.s get
-        watches.limit.set: node proto/wtools/amid/l4_files/l7_watcher/step/WatchesLimit.s set
+        watches.limit.increase: node proto/wtools/amid/l4_files/l7_watcher/step/WatchesLimit.s
     path:
       module.willfiles:
         criterion:
@@ -1519,5 +1518,5 @@ module:
           - 'build::npm'
     consistency:
       ../will.yml:
-        hash: 3f2d371ba23ec807207455aab9b885b2
-        size: 7256
+        hash: e6d6996c220122651ecceb969676e866
+        size: 7167
