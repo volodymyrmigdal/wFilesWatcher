@@ -13,8 +13,7 @@ jobs :
     strategy :
       fail-fast : false
       matrix :
-        os : [ ubuntu-latest, windows-latest, macos-latest ]
-        # node-version : [ 10.x, 12.9.1, 13.x, 14.x, 15.x ]
+        os : [ windows-latest, macos-latest ]
         node-version : [ 14.x ]
     if : "!startsWith( github.event.head_commit.message, 'version' ) && !startsWith( github.event.head_commit.message, '.' )"
     runs-on : ${{ matrix.os }}
@@ -44,5 +43,19 @@ jobs :
       run : env
     - run : npm list
       continue-on-error : true
-    - run : node proto/wtools/amid/l4_files.test/Fs.test.ss r:filePathRenamed v:10
 
+    - name : "Windows"
+      if : matrix.os == 'windows-latest'
+      run : |
+        wget https://github.com/facebook/watchman/releases/download/v2021.01.11.00/watchman-v2021.01.11.00-windows.zip -OutFile "$env:temp/watchman-v2021.01.11.00-windows.zip"
+        Expand-Archive "$env:temp/watchman-v2021.01.11.00-windows.zip" -DestinationPath "$env:temp/watchman"
+        $env:Path += ";" + "$env:temp/watchman/bin"
+        where watchman
+        npm test
+      shell : powershell
+
+    - name : "Linux/Mac"
+      if : matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+      run : |
+        brew install watchman
+        npm test
