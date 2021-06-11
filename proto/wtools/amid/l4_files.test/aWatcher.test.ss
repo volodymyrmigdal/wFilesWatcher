@@ -600,8 +600,8 @@ async function filePathRenamed( test )
 
   test.case = 'renamed before watch resumed'
   a.reflect();
-  var filePath = a.abs( 'fileToRename' );
-  var filePath2 = a.abs( 'fileNewName' );
+  var filePath = a.abs( 'fileToRename1' );
+  var filePath2 = a.abs( 'fileNewName1' );
   a.fileProvider.dirMake( filePath );
   var watcher = await context.watcher.watch( filePath, { onChange : () => {}, enabled : 0 } );
   a.fileProvider.fileRename( filePath2, filePath );
@@ -611,8 +611,8 @@ async function filePathRenamed( test )
 
   test.case = 'renamed after watch resumed'
   a.reflect();
-  var filePath = a.abs( 'fileToRename' );
-  var filePath2 = a.abs( 'fileNewName' );
+  var filePath = a.abs( 'fileToRename2' );
+  var filePath2 = a.abs( 'fileNewName2' );
   a.fileProvider.dirMake( filePath );
   var eventReady = _.Consequence();
   await _.time.out( context.t1 );
@@ -629,8 +629,8 @@ async function filePathRenamed( test )
   await eventReady;
   test.identical( files.length, 2 );
   var names = files.map( ( f ) => _.path.fullName( f.filePath ) )
-  test.true( _.longHas( names, 'fileToRename' ) );
-  test.true( _.longHas( names, 'fileNewName' ) );
+  test.true( _.longHas( names, 'fileToRename2' ) );
+  test.true( _.longHas( names, 'fileNewName2' ) );
   await watcher.close();
 
   /* - */
@@ -740,17 +740,21 @@ async function filePathReaddedSame( test )
   var filePath2 = a.abs( 'fileNameNew' );
   a.fileProvider.dirMake( filePath );
   var eventReady = _.Consequence();
+  var files = [];
   var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
-    eventReady.take( e );
+    files.push( ... e.files)
+    if( files.length === 1 )
+    eventReady.take( null );
   })
   a.fileProvider.fileRename( filePath2, filePath );
+  await _.time.out( context.t3 )
   a.fileProvider.fileRename( filePath, filePath2 );
   test.true( a.fileProvider.fileExists( filePath ) )
-  var e = await eventReady;
-  test.identical( e.files.length, 1 );
-  test.identical( path.name( e.files[ 0 ].filePath ), 'fileNameOld' );
+  await eventReady;
+  test.ge( files.length, 1 );
+  test.identical( path.name( files[ 0 ].filePath ), 'fileNameOld' );
   await watcher.close();
 
   /* - */
@@ -761,17 +765,21 @@ async function filePathReaddedSame( test )
   var filePath2 = a.abs( 'fileNameNew' );
   a.fileProvider.dirMake( filePath );
   var eventReady = _.Consequence();
+  var files = [];
   var watcher = await context.watcher.watch( filePath, ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
-    eventReady.take( e );
+    files.push( ... e.files )
+    if( _.path.name( e.files[ 0 ].filePath ) === 'file' )
+    eventReady.take( null );
   })
   a.fileProvider.fileRename( filePath2, filePath );
+  await _.time.out( context.t3 )
   a.fileProvider.fileRename( filePath, filePath2 );
   test.true( a.fileProvider.fileExists( filePath ) )
   a.fileProvider.fileWrite( a.abs( 'fileNameOld/file' ), 'file' );
-  var e = await eventReady;
-  test.identical( e.files.length, 1 );
+  await eventReady;
+  test.ge( files.length, 1 );
   await watcher.close();
 
   /* - */
