@@ -164,8 +164,9 @@ function _enable()
       if( !_.fileProvider.fileExists( filePath ) )
       return con.error( _.err( `Error initiating watch: provided path doesn't exist.\nFile path: ${filePath}` ) )
 
-      let filePathToWatch = filePath;
-
+      let resolveOptions = { filePath };
+      let filePathToWatchResolved = _.fileProvider.pathResolveLinkFull( resolveOptions );
+      let filePathToWatch = filePathToWatchResolved.absolutePath;
       if( !features.watchedDirRenameDetection || !_.fileProvider.isDir( filePathToWatch ) )
       filePathToWatch = _.path.dir( filePathToWatch );
 
@@ -177,7 +178,7 @@ function _enable()
         // It is considered to be best practice to show any 'warning' or
         // 'error' information to the user, as it may suggest steps
         // for remediation
-        if( 'warning' in resp)
+        if( 'warning' in resp )
         {
           logger.log( 'warning: ', resp.warning );
         }
@@ -197,8 +198,8 @@ function _enable()
 
         if( !features.watchedDirRenameDetection )
         {
-          descriptor.relativeWatchPath = _.path.fullName( filePath ),
-          descriptor.ino = _.fileProvider.statRead( filePath ).ino;
+          descriptor.relativeWatchPath = _.path.fullName( filePathToWatchResolved.absolutePath );
+          descriptor.ino = resolveOptions.stat.ino;
         }
 
         self.watcherArray.push( descriptor );
@@ -218,7 +219,7 @@ function _enable()
     {
       /* Avoid subscription duplication for the same root path */
 
-      if( self.subscriptionMap[ descriptor.watch ] )
+      if( self.subscriptionMap[ descriptor.filePath ] )
       return;
 
       let expression = [ 'anyof', [ 'match', '*' ] ];
@@ -241,10 +242,10 @@ function _enable()
         })
       }
 
-      self.subscriptionMap[ descriptor.watch ] = { subscriptionDescriptor, watchDescriptor : descriptor };
+      self.subscriptionMap[ descriptor.filePath ] = { subscriptionDescriptor, watchDescriptor : descriptor };
 
       let con = _.Consequence();
-      self.client.command([ 'subscribe', descriptor.watch, 'defaultSub', subscriptionDescriptor ], con.tolerantCallback() );
+      self.client.command([ 'subscribe', descriptor.watch, descriptor.filePath, subscriptionDescriptor ], con.tolerantCallback() );
       cons.push( con );
     });
 
@@ -262,7 +263,7 @@ function _enable()
       if( resp.is_fresh_instance )
       return;
 
-      let sub = self.subscriptionMap[ resp.root ];
+      let sub = self.subscriptionMap[ resp.subscription ];
       let watchDescriptor = sub.watchDescriptor;
       let oroot = resp.root;
       let files = [];
@@ -279,7 +280,6 @@ function _enable()
 
       files.forEach( ( file ) =>
       {
-        debugger
         if( !features.watchedDirRenameDetection )
         {
           if( !_.strBegins( file.name, watchDescriptor.relativeWatchPath ) )

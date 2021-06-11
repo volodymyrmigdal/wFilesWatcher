@@ -978,18 +978,19 @@ async function filePathIsLink( test )
   a.fileProvider.hardLink( filePath, filePathReal )
   var eventReady = _.Consequence();
   var files = [];
+  await _.time.out( context.t1 );
   var watcher = await context.watcher.watch( _.path.dir( filePath ), ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
-    if( files.length === 2)
+    if( files.length === 1 )
     eventReady.take( e );
   })
   await _.time.out( context.t3 * 2 ) //xxx: investigate
   a.fileProvider.fileWrite( filePathReal, 'a' );
   test.true( a.fileProvider.areHardLinked( filePath, filePathReal ) )
   await eventReady;
-  test.identical( files.length, 2 );
+  test.identical( files.length, 1 );
   await watcher.close();
 
   /* - */
@@ -1144,7 +1145,8 @@ async function filePathComplexTreeDeleteNestedDir( test )
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files );
-    eventReady.take( e );
+    if( files.length === 1 )
+    eventReady.take( null );
   })
   a.fileProvider.filesDelete( path.join( filePath, 'dir0' ) );
   await eventReady;
