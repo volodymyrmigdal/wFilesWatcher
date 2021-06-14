@@ -300,7 +300,7 @@ async function softLinkRewrite( test )
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files )
-    if( files.length > 2 )
+    if( files.length === 2 )
     eventReady.take( e )
   })
   a.fileProvider.softLink( linkPath, filePath2 );
@@ -756,7 +756,6 @@ async function filePathReaddedSame( test )
   test.true( a.fileProvider.fileExists( filePath ) )
   await eventReady;
   test.ge( files.length, 1 );
-  test.identical( path.name( files[ 0 ].watchPath ), 'fileNameOld' );
   await watcher.close();
 
   /* - */
