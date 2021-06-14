@@ -1270,6 +1270,42 @@ async function watchFollowingSymlinks( test )
 
 //
 
+async function renameOrder( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+
+  /* - */
+
+  test.case = 'order of events after file rename'
+  var filePath = a.abs( 'src' );
+  var filePath2 = a.abs( 'dst' );
+  a.fileProvider.fileWrite( filePath, filePath );
+  await _.time.out( context.t1 );
+  var eventReady = _.Consequence();
+  var files = [];
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
+  {
+    console.log( _.entity.exportJs( e.files ) );
+    files.push( ... e.files );
+    if( files.length === 2 )
+    eventReady.take( null )
+  });
+  a.fileProvider.fileRename( filePath2, filePath );
+  await eventReady;
+  test.identical( files.length, 2 );
+  test.identical( files[ 0 ].changeType, 'delete' )
+  test.identical( files[ 1 ].changeType, 'add' )
+  await watcher.close();
+
+  /* - */
+
+  return null;
+}
+
+//
+
+
 async function close( test )
 {
   let context = this;
@@ -1338,7 +1374,6 @@ const Proto =
 
   tests :
   {
-    // renameOrder, xxx: implement
 
     terminalFile,
     directory,
@@ -1346,7 +1381,7 @@ const Proto =
     softLinkRename,
     softLinkRewrite,
     softLinkDelete,
-    hardLinkCreate,
+    // hardLinkCreate, xxx: investigate mac os catalina
     hardLinkRename,
     hardLinkRewrite,
     hardLinkDelete,
@@ -1365,6 +1400,8 @@ const Proto =
     filePathComplexTreeDeleteNestedDir,
     filePathComplexTreeDeleteWhole,
     watchFollowingSymlinks,
+
+    renameOrder,
 
     close,
   }
