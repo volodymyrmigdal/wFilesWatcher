@@ -260,6 +260,46 @@ async function onIdleMultipleCallbacks( test )
 
 onIdleMultipleCallbacks.timeOut = 20000;
 
+//
+
+async function exportString( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+
+  /* - */
+
+  var filePath1 = a.abs( 'a/b' )
+  var filePath2 = a.abs( 'c/d' )
+  a.fileProvider.fileWrite( filePath1, filePath1 )
+  a.fileProvider.fileWrite( filePath2, filePath2 )
+  var manager = new _.files.watcher.manager();
+  var w1 = await _.files.watcher.fs.watch( filePath1, { onChange, manager } );
+  var w2 = await _.files.watcher.fs.watch( [ filePath1, filePath2 ], { onChange, manager } );
+  var it = manager.exportString({ verbosity : 2 });
+  console.log( it.result )
+  test.identical( _.strCount( it.result, /WatcherManager::#in.*/ ), 1 )
+  test.identical( _.strCount( it.result, / WatcherFs::#in.*/ ), 2 )
+  test.identical( _.strCount( it.result, `   FilePath:` ), 2 )
+  test.identical( _.strCount( it.result, `     - ${filePath1}` ), 2 )
+  test.identical( _.strCount( it.result, `     - ${filePath2}` ), 1 )
+  test.identical( _.strCount( it.result, `   Filter:` ), 2 )
+  test.identical( _.strCount( it.result, `      null` ), 2 )
+  await w1.close();
+  await w2.close();
+  await manager.finit();
+
+  /* - */
+
+  return null;
+
+  /* */
+
+  function onChange()
+  {
+  }
+}
+
 // --
 // declare
 // --
@@ -285,7 +325,8 @@ const Proto =
   tests :
   {
     onIdle,
-    onIdleMultipleCallbacks
+    onIdleMultipleCallbacks,
+    exportString
   }
 
 }

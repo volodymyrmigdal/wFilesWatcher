@@ -217,14 +217,45 @@ function onIdle( time, cb )
 
 //
 
-function exportString() //xxx: implement and cover with test
+function exportString( o )
 {
-  _.assert( 0, 'implement and cover with test')
+  let self = this;
+
+  o = _.routine.options( exportString, o || null );
+
+  let it = o.it = _.stringer.it( o.it || { verbosity : 2 } );
+  it.opts = o;
+
+  if( o.withName === null )
+  o.withName = 1;
+
+  if( o.withName )
+  it.iterator.result += self.qualifiedName;
+
+  if( it.verbosity >= 1 )
+  {
+    if( o.withName )
+    it.levelUp();
+
+    let watcherArray = self.watcherArray.slice();
+    _.each( watcherArray, ( watcher ) =>
+    {
+      it.lineWrite( '' );
+      watcher.exportString( o );
+    })
+
+    if( o.withName )
+    it.levelDown();
+  }
+
+  return it;
 }
 
 exportString.defaults =
 {
-  it : null
+  verbosity : 1,
+  withName : null,
+  it : null,
 }
 
 //
@@ -305,6 +336,7 @@ _.classDeclare
 
 _.Copyable.mixin( Self );
 _.EventHandler.mixin( Self );
+_.Instancing.mixin( Self );
 
 //
 
