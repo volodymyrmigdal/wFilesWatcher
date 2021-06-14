@@ -39,12 +39,10 @@ function _featuresForm()
 
   features.recursion = true;
 
-  // return _.Consequence.AndKeep
-  // (
-  //   self._watchedDirRenameDetection(),
-  // );
-
-  return null;
+  return _.Consequence.AndKeep
+  (
+    self._watchedDirRenameDetection(),
+  );
 }
 
 //
@@ -62,20 +60,28 @@ function _watchedDirRenameDetection()
   let srcName = _.idWithDateAndTime();
   let srcPath = _.path.join( tempDir, srcName );
   let dstPath = _.path.join( tempDir, _.idWithDateAndTime() );
+  let timeOut = false;
 
   _.fileProvider.dirMake( srcPath );
 
   let client = new Watchman.Client();
 
-  client.capabilityCheck({ optional : [], required : [ 'relative_root' ] }, con1.tolerantCallback() )
-
-  con1.thenGive( () =>
+  client.capabilityCheck({ optional : [], required : [ 'relative_root' ] }, ( err, resp ) =>
   {
+    if( err )
+    return con1.error( err );
+
+    if( timeOut )
+    return;
+
     srcPath = _.fileProvider.pathResolveLinkFull( srcPath ).absolutePath;
     client.command([ 'watch-project', _.path.nativize( srcPath ) ], ( err, resp ) =>
     {
       if( err )
       return con1.error( err );
+
+      if( timeOut )
+      return;
 
       let subscriptionDescriptor =
       {
@@ -84,34 +90,41 @@ function _watchedDirRenameDetection()
         relative_path : resp.relative_path
       };
 
-      client.command([ 'subscribe', resp.watch, 'defaultSub', subscriptionDescriptor ], con1.tolerantCallback() );
-    })
-  })
-
-  con1.thenGive( () =>
-  {
-    client.on( 'subscription', ( resp ) =>
-    {
-      if( resp.canceled )
-      return;
-
-      if( resp.is_fresh_instance )
-      return;
-
-      for( let i = 0; i < resp.files.length; i++ )
+      client.command([ 'subscribe', resp.watch, 'testSub', subscriptionDescriptor ], ( err, resp ) =>
       {
-        let file = resp.files[ i ];
-        if( file.name === srcName )
-        features.watchedDirRenameDetection = true;
-      }
+        if( err )
+        return con1.error( err );
 
-      con1.take( null );
+        if( timeOut )
+        return;
+
+        client.on( 'subscription', ( resp ) =>
+        {
+          if( resp.canceled )
+          return;
+
+          if( resp.is_fresh_instance )
+          return;
+
+          for( let i = 0; i < resp.files.length; i++ )
+          {
+            let file = resp.files[ i ];
+            if( file.name === srcName )
+            features.watchedDirRenameDetection = true;
+          }
+
+          con1.take( null );
+        })
+        _.fileProvider.fileRename( dstPath, srcPath );
+      });
     })
-
-    _.fileProvider.fileRename( dstPath, srcPath );
   })
 
-  let con2 = _.time.out( 500 );
+  let con2 = _.time.out( 500, () =>
+  {
+    timeOut = true;
+    return null;
+  });
   let con = _.Consequence.OrTake( con1, con2 )
 
   con.finally( async ( err, got ) =>
@@ -120,7 +133,6 @@ function _watchedDirRenameDetection()
     _.errAttend( err );
     _.fileProvider.filesDelete( dstPath );
     let ready = _.take( null );
-    ready.thenGive( () => client.command( [ 'watch-del-all' ], ready.tolerantCallback() ) );
     ready.thenGive( () => client.command( [ 'shutdown-server' ], ready.tolerantCallback() ) );
     await ready;
     if( err )
@@ -282,7 +294,6 @@ function _enable()
 
       files.forEach( ( file ) =>
       {
-        debugger
         if( !features.watchedDirRenameDetection )
         {
           if( file.exists && !file.ino )
