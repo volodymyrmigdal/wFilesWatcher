@@ -300,7 +300,7 @@ async function softLinkRewrite( test )
   {
     console.log( _.entity.exportJs( e.files ) )
     files.push( ... e.files )
-    if( files.length === 2 )
+    if( e.files[ 0 ].filePath === 'link.js' )
     eventReady.take( e )
   })
   a.fileProvider.softLink( linkPath, filePath2 );
