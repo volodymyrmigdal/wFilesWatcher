@@ -49,6 +49,7 @@ jobs :
       if : matrix.os == 'windows-latest'
       run : |
         choco install watchman
+        npm test
       shell : powershell
 
     - name : "Linux/Mac"

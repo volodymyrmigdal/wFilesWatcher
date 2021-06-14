@@ -62,20 +62,28 @@ function _watchedDirRenameDetection()
   let srcName = _.idWithDateAndTime();
   let srcPath = _.path.join( tempDir, srcName );
   let dstPath = _.path.join( tempDir, _.idWithDateAndTime() );
+  let timeOut = false;
 
   _.fileProvider.dirMake( srcPath );
 
   let client = new Watchman.Client();
 
-  client.capabilityCheck({ optional : [], required : [ 'relative_root' ] }, con1.tolerantCallback() )
-
-  con1.thenGive( () =>
+  client.capabilityCheck({ optional : [], required : [ 'relative_root' ] }, ( err, resp ) =>
   {
+    if( err )
+    return con1.error( err );
+
+    if( timeOut )
+    return;
+
     srcPath = _.fileProvider.pathResolveLinkFull( srcPath ).absolutePath;
     client.command([ 'watch-project', _.path.nativize( srcPath ) ], ( err, resp ) =>
     {
       if( err )
       return con1.error( err );
+
+      if( timeOut )
+      return;
 
       let subscriptionDescriptor =
       {
@@ -84,34 +92,41 @@ function _watchedDirRenameDetection()
         relative_path : resp.relative_path
       };
 
-      client.command([ 'subscribe', resp.watch, 'defaultSub', subscriptionDescriptor ], con1.tolerantCallback() );
-    })
-  })
-
-  con1.thenGive( () =>
-  {
-    client.on( 'subscription', ( resp ) =>
-    {
-      if( resp.canceled )
-      return;
-
-      if( resp.is_fresh_instance )
-      return;
-
-      for( let i = 0; i < resp.files.length; i++ )
+      client.command([ 'subscribe', resp.watch, 'testSub', subscriptionDescriptor ], ( err, resp ) =>
       {
-        let file = resp.files[ i ];
-        if( file.name === srcName )
-        features.watchedDirRenameDetection = true;
-      }
+        if( err )
+        return con1.error( err );
 
-      con1.take( null );
+        if( timeOut )
+        return;
+
+        client.on( 'subscription', ( resp ) =>
+        {
+          if( resp.canceled )
+          return;
+
+          if( resp.is_fresh_instance )
+          return;
+
+          for( let i = 0; i < resp.files.length; i++ )
+          {
+            let file = resp.files[ i ];
+            if( file.name === srcName )
+            features.watchedDirRenameDetection = true;
+          }
+
+          con1.take( null );
+        })
+        _.fileProvider.fileRename( dstPath, srcPath );
+      });
     })
-
-    _.fileProvider.fileRename( dstPath, srcPath );
   })
 
-  let con2 = _.time.out( 500 );
+  let con2 = _.time.out( 500, () =>
+  {
+    timeOut = true;
+    return null;
+  });
   let con = _.Consequence.OrTake( con1, con2 )
 
   con.finally( async ( err, got ) =>
@@ -121,7 +136,6 @@ function _watchedDirRenameDetection()
     _.fileProvider.filesDelete( dstPath );
     _.path.tempClose( tempDir );
     let ready = _.take( null );
-    ready.thenGive( () => client.command( [ 'watch-del-all' ], ready.tolerantCallback() ) );
     ready.thenGive( () => client.command( [ 'shutdown-server' ], ready.tolerantCallback() ) );
     ready.thenGive( () =>
     {
@@ -171,7 +185,7 @@ function _enable()
 
       if( !_.fileProvider.fileExists( filePath ) )
       return con.error( _.err( `Error initiating watch: provided path doesn't exist.\nFile path: ${filePath}` ) )
-
+      debugger
       let resolveOptions = { filePath };
       let filePathToWatchResolved = _.fileProvider.pathResolveLinkFull( resolveOptions );
       let filePathToWatch = filePathToWatchResolved.absolutePath;
@@ -290,8 +304,18 @@ function _enable()
       {
         if( !features.watchedDirRenameDetection )
         {
+          if( file.exists && !file.ino )
+          {
+            let stat = _.fileProvider.statRead( _.path.join( oroot, file.name ) );
+            if( stat )
+            file.ino = stat.ino;
+          }
+
           if( !_.strBegins( file.name, watchDescriptor.relativeWatchPath ) )
           {
+            if( !file.ino )
+            return;
+
             if( BigInt( file.ino ) !== watchDescriptor.ino )
             return;
 
@@ -299,6 +323,8 @@ function _enable()
             {
               watchDescriptor.ino = BigInt( file.ino );
               watchDescriptor.relativeWatchPath = file.name;
+              resp.root = _.path.join( oroot, watchDescriptor.relativeWatchPath );
+              file.name = _.path.relative( watchDescriptor.relativeWatchPath, file.name );
             }
           }
 
