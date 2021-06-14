@@ -51,9 +51,12 @@ async function terminalFile( test )
   a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
   await _.time.out( context.t1 );
   var eventReady = _.Consequence();
+  var files = [];
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) );
+    files.push( ... e.files );
+    if( files.length === 1 )
     eventReady.take( e )
   });
   a.fileProvider.fileWrite( filePath, 'a' );

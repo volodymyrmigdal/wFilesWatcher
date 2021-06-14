@@ -282,9 +282,16 @@ function _enable()
       {
         if( !features.watchedDirRenameDetection )
         {
+          if( file.exists && !file.ino )
+          {
+            let stat = _.fileProvider.statRead( _.path.join( resp.root, file.name ) );
+            if( stat )
+            file.ino = stat.ino;
+          }
+
           if( !_.strBegins( file.name, watchDescriptor.relativeWatchPath ) )
           {
-            if( BigInt( file.ino ) !== watchDescriptor.ino )
+            if( file.ino && BigInt( file.ino ) !== watchDescriptor.ino )
             return;
 
             if( file.new )
@@ -294,7 +301,7 @@ function _enable()
             }
           }
 
-          if( BigInt( file.ino ) === watchDescriptor.ino )
+          if( file.ino && BigInt( file.ino ) === watchDescriptor.ino )
           {
             let isDir = file.type === 'd';
             if( isDir && !file.new && file.exists )
