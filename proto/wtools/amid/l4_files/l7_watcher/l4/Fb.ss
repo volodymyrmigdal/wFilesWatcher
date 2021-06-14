@@ -39,10 +39,12 @@ function _featuresForm()
 
   features.recursion = true;
 
-  return _.Consequence.AndKeep
-  (
-    self._watchedDirRenameDetection(),
-  );
+  // return _.Consequence.AndKeep
+  // (
+  //   self._watchedDirRenameDetection(),
+  // );
+
+  return null;
 }
 
 //
@@ -291,7 +293,10 @@ function _enable()
 
           if( !_.strBegins( file.name, watchDescriptor.relativeWatchPath ) )
           {
-            if( file.ino && BigInt( file.ino ) !== watchDescriptor.ino )
+            if( !file.ino )
+            return;
+
+            if( BigInt( file.ino ) !== watchDescriptor.ino )
             return;
 
             if( file.new )
@@ -301,7 +306,7 @@ function _enable()
             }
           }
 
-          if( file.ino && BigInt( file.ino ) === watchDescriptor.ino )
+          if( BigInt( file.ino ) === watchDescriptor.ino )
           {
             let isDir = file.type === 'd';
             if( isDir && !file.new && file.exists )

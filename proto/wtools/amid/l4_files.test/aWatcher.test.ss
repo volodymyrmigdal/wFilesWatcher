@@ -190,6 +190,7 @@ async function directory( test )
   var eventReady = _.Consequence();
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) )
     events.push( e );
     if( events.length > 1 )
     eventReady.take( null )
@@ -220,6 +221,7 @@ async function directory( test )
   var eventReady = _.Consequence();
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
+    console.log( _.entity.exportJs( e.files ) )
     eventReady.take( e )
   })
   a.fileProvider.filesDelete( filePath );
