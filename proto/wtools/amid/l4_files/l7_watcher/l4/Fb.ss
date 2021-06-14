@@ -165,7 +165,7 @@ function _enable()
 
       if( !_.fileProvider.fileExists( filePath ) )
       return con.error( _.err( `Error initiating watch: provided path doesn't exist.\nFile path: ${filePath}` ) )
-
+      debugger
       let resolveOptions = { filePath };
       let filePathToWatchResolved = _.fileProvider.pathResolveLinkFull( resolveOptions );
       let filePathToWatch = filePathToWatchResolved.absolutePath;
@@ -282,11 +282,12 @@ function _enable()
 
       files.forEach( ( file ) =>
       {
+        debugger
         if( !features.watchedDirRenameDetection )
         {
           if( file.exists && !file.ino )
           {
-            let stat = _.fileProvider.statRead( _.path.join( resp.root, file.name ) );
+            let stat = _.fileProvider.statRead( _.path.join( oroot, file.name ) );
             if( stat )
             file.ino = stat.ino;
           }
@@ -303,6 +304,8 @@ function _enable()
             {
               watchDescriptor.ino = BigInt( file.ino );
               watchDescriptor.relativeWatchPath = file.name;
+              resp.root = _.path.join( oroot, watchDescriptor.relativeWatchPath );
+              file.name = _.path.relative( watchDescriptor.relativeWatchPath, file.name );
             }
           }
 
