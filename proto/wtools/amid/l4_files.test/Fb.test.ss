@@ -40,7 +40,7 @@ const Proto =
 {
 
   name : 'Tools.files.watcher.fb',
-  enabled : 0,
+  enabled : 1,
   silencing : 1,
 
   onSuiteBegin,

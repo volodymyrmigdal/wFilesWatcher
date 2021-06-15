@@ -13,6 +13,7 @@ if( typeof module !== 'undefined' )
   _.include( 'wConsequence' );
   _.include( 'wEventHandler' );
   _.include( 'wFiles' );
+  _.include( 'wInstancing' );
 
   module[ 'exports' ] = _;
 }
