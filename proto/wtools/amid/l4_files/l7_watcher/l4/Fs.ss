@@ -159,22 +159,23 @@ function _enable()
       if( !self.Features.watchedSymlinkChangeDetection && _.fileProvider.isSoftLink( filePath ) )
       filePath = _.fileProvider.pathResolveSoftLink( filePath );
 
+      let watcherDescriptor = Object.create( null );
+      watcherDescriptor.clock = process.hrtime.bigint();
+      watcherDescriptor.clockMs = watcherDescriptor.clock / BigInt( 1000000 );
+
       if( !self.Features.watchedDirRenameDetection && _.fileProvider.isDir( filePath ) && !_.path.isRoot( filePath ))
       {
-        let watcherDescriptor = Object.create( null );
         watcherDescriptor.filePath = _.path.dir( filePath );
         watcherDescriptor.relativeWatchPath = _.path.fullName( filePath );
         watcherDescriptor.absolutePath = filePath;
         watcherDescriptor.recursive = true;
         watcherDescriptor.stat = _.fileProvider.statRead( filePath );
         watcherDescriptor.watch = _watcherMakeFor.call( self, watcherDescriptor.filePath, watcherDescriptor.recursive );
-
         self.watcherArray.push( watcherDescriptor );
         _watcherRegisterCallbacks.call( self, watcherDescriptor )
       }
       else
       {
-        let watcherDescriptor = Object.create( null );
         watcherDescriptor.filePath = filePath;
         watcherDescriptor.recursive = self.recursive;
         watcherDescriptor.watch = _watcherMakeFor.call( self, filePath, watcherDescriptor.recursive );
@@ -259,6 +260,16 @@ function _watcherRegisterCallbacks( watcherDescriptor )
 
     record.filePath = filename;
     record.watchPath = watcher.filePath;
+
+    record.changeType = 'modify'
+
+    let stat = _.fileProvider.statRead( _.path.join( record.watchPath, record.filePath ) );
+    if( !stat )
+    record.changeType = 'delete';
+    else if( stat.birthtimeNs && stat.birthtimeNs >= watcherDescriptor.clock )
+    record.changeType = 'add'
+    else if( stat.birthtimeMs >= watcherDescriptor.clockMs )
+    record.changeType = 'add'
 
     if( watcherDescriptor.relativeWatchPath )
     {

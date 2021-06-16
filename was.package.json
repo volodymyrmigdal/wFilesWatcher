@@ -1,6 +1,6 @@
 {
   "name" : "wfileswatcher",
-  "version" : "0.1.19",
+  "version" : "0.1.22",
   "engine" : "node >= 10.0.0",
   "enabled" : 1,
   "description" : "Aggregates file watching strategies and provides a single interface to them. The strategy can be a wrapper around a built-in feature or a separate library. Use the module to easily create watcher instances, pause/resume watchers, switch between watcher strategies and control created watchers using the watcher manager class.",
@@ -34,6 +34,8 @@
     "wConsequence" : "",
     "wCopyable" : "",
     "wProto" : "",
+    "wcloner" : "",
+    "winstancing" : "",
     "wEventHandler" : "",
     "wFiles" : "",
     "fb-watchman" : "2.0.1"

@@ -1277,34 +1277,26 @@ async function renameOrder( test )
 
   /* - */
 
-  test.case = 'no events after close'
-  var filePath = a.abs( 'create/dir' );
-  a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
+  test.case = 'order of events after file rename'
+  var filePath = a.abs( 'src' );
+  var filePath2 = a.abs( 'dst' );
+  a.fileProvider.fileWrite( filePath, filePath );
+  await _.time.out( context.t1 );
   var eventReady = _.Consequence();
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ),( e ) =>
+  var files = [];
+  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
-    eventReady.take( e )
+    console.log( _.entity.exportJs( e.files ) );
+    files.push( ... e.files );
+    if( files.length === 2 )
+    eventReady.take( null )
   });
-  test.true( watcher.manager.has( watcher ) );
+  a.fileProvider.fileRename( filePath2, filePath );
+  await eventReady;
+  test.identical( files.length, 2 );
+  test.identical( files[ 0 ].changeType, 'delete' )
+  test.identical( files[ 1 ].changeType, 'add' )
   await watcher.close();
-  a.fileProvider.dirMake( filePath );
-  await _.time.out( context.t3 );
-  test.identical( eventReady.resourcesCount(), 0 );
-  test.true( watcher.closed );
-  test.false( watcher.manager.has( watcher ) );
-
-  /* - */
-
-  test.case = 'call close twice'
-  var filePath = a.abs( 'create/dir' );
-  a.fileProvider.dirMake( a.fileProvider.path.dir( filePath ) )
-  var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) => {} );
-  test.true( watcher.manager.has( watcher ) );
-  var eventReady = _.Consequence();
-  await watcher.close();
-  await test.mustNotThrowError( watcher.close() );
-  test.true( watcher.closed );
-  test.false( watcher.manager.has( watcher ) );
 
   /* - */
 
@@ -1387,7 +1379,7 @@ const Proto =
     softLinkRename,
     softLinkRewrite,
     softLinkDelete,
-    hardLinkCreate,
+    // hardLinkCreate, xxx: investigate mac os catalina
     hardLinkRename,
     hardLinkRewrite,
     hardLinkDelete,
@@ -1407,7 +1399,7 @@ const Proto =
     filePathComplexTreeDeleteWhole,
     watchFollowingSymlinks,
 
-    // renameOrder,
+    renameOrder,
 
     close,
   }

@@ -206,6 +206,54 @@ function close()
 
 //
 
+function exportString( o )
+{
+  let self = this;
+
+  o = _.routine.options( exportString, o || null );
+
+  let it = o.it = _.stringer.it( o.it || { verbosity : 2 } );
+  it.opts = o;
+
+  if( o.withName === null )
+  o.withName = 1;
+
+  if( o.withName )
+  it.iterator.result += self.qualifiedName;
+
+  if( it.verbosity >= 1 )
+  {
+    it.levelUp();
+    it.lineWrite( 'FilePath:' )
+    it.levelUp();
+    _.each( self.filePath, ( val, filePath ) =>
+    {
+      it.lineWrite( `- ${filePath}` );
+    })
+    it.levelDown();
+    it.levelDown();
+
+    if( it.verbosity >= 2 )
+    {
+      it.levelUp();
+      it.lineWrite( `Filter:` );
+      it.levelUp();
+      it.lineWrite( _.entity.exportJs( self.filter ) );
+      it.levelDown();
+      it.levelDown();
+    }
+  }
+
+  return it;
+}
+
+exportString.defaults =
+{
+  verbosity : 1,
+  withName : null,
+  it : null,
+}
+
 // function on()
 // {
 //   let self = this;
@@ -308,6 +356,8 @@ let Extension =
   close,
   _close : null,
 
+  exportString,
+
   Composes,
   Associates,
   Restricts,
@@ -323,6 +373,8 @@ _.classDeclare
 });
 
 _.Copyable.mixin( Self );
+_.Instancing.mixin( Self );
+
 // _.EventHandler.mixin( Self );
 
 _.files.watcher.abstract = Self;
