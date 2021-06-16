@@ -3,8 +3,8 @@ root:
   - wFileWacher.out
 consistency:
   ../will.yml: &ref_0
-    hash: e6d6996c220122651ecceb969676e866
-    size: 7167
+    hash: 24420b0027ca9e636335867d43e608f9
+    size: 7281
 module:
   wFileWacher.out:
     about:
@@ -213,6 +213,14 @@ module:
         enabled: 0
       wFiles:
         path: 'npm:///wFiles'
+        autoExporting: 0
+        enabled: 0
+      wCloner:
+        path: 'npm:///wcloner'
+        autoExporting: 0
+        enabled: 0
+      wInstancing:
+        path: 'npm:///winstancing'
         autoExporting: 0
         enabled: 0
       fb-watchman:
@@ -976,6 +984,14 @@ module:
         path: 'npm:///wFiles'
         autoExporting: 0
         enabled: 0
+      wCloner:
+        path: 'npm:///wcloner'
+        autoExporting: 0
+        enabled: 0
+      wInstancing:
+        path: 'npm:///winstancing'
+        autoExporting: 0
+        enabled: 0
       fb-watchman:
         path: 'npm:///fb-watchman#2.0.1'
         autoExporting: 0
@@ -1518,5 +1534,5 @@ module:
           - 'build::npm'
     consistency:
       ../will.yml:
-        hash: e6d6996c220122651ecceb969676e866
-        size: 7167
+        hash: 24420b0027ca9e636335867d43e608f9
+        size: 7281
