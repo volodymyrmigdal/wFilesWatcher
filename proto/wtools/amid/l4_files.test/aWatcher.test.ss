@@ -94,33 +94,24 @@ async function terminalFile( test )
   /* - */
 
   test.case = 'rename'
-  var filePath = a.abs( 'file.js' );
-  var filePath2 = a.abs( 'file.x' );
-  a.fileProvider.fileWrite( filePath, 'a' );
+  var filePath = a.abs( 'src' );
+  var filePath2 = a.abs( 'dst' );
+  a.fileProvider.fileWrite( filePath, 'src' );
   await _.time.out( context.t1 );
   var eventReady = _.Consequence();
-  var events = [];
+  var files = [];
   var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
   {
     console.log( _.entity.exportJs( e.files ) );
-    events.push( e );
-    if( events.length > 1 )
+    files.push( ... e.files );
+    if( files.length === 2 )
     eventReady.take( null )
   });
   a.fileProvider.fileRename( filePath2, filePath );
   await eventReady;
-  var exp =
-  [{
-    filePath : 'file.js',
-    watchPath : a.fileProvider.path.dir( filePath ),
-  }]
-  test.contains( events[ 0 ].files, exp )
-  var exp =
-  [{
-    filePath : 'file.x',
-    watchPath : a.fileProvider.path.dir( filePath ),
-  }]
-  test.contains( events[ 1 ].files, exp )
+  var fileNames = files.map( ( file ) => a.fileProvider.path.fullName( file.filePath ) );
+  test.true( _.longHas( fileNames, 'src' ) )
+  test.true( _.longHas( fileNames, 'dst' ) )
   await watcher.close();
 
   /* - */
