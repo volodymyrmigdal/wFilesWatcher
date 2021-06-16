@@ -309,6 +309,12 @@ submodule:
   wFiles:
     path: 'npm:///wFiles'
     enabled: 0
+  wCloner:
+    path: 'npm:///wcloner'
+    enabled: 0
+  wInstancing:
+    path: 'npm:///winstancing'
+    enabled: 0
   fb-watchman:
     path: 'npm:///fb-watchman#2.0.1'
     enabled: 0

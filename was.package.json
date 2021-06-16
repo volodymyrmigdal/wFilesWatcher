@@ -34,6 +34,8 @@
     "wConsequence" : "",
     "wCopyable" : "",
     "wProto" : "",
+    "wcloner" : "",
+    "winstancing" : "",
     "wEventHandler" : "",
     "wFiles" : "",
     "fb-watchman" : "2.0.1"
