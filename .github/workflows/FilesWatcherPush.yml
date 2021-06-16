@@ -48,16 +48,11 @@ jobs :
       if : matrix.os == 'windows-latest'
       run : |
         choco install watchman
-        npm test
       shell : powershell
 
     - name : "Linux/Mac"
       if : matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
       run : |
         brew install watchman
-    - run : node proto/wtools/amid/l4_files.test/Fs.test.ss v:10 r:hardLinkCreate
-      continue-on-error : true
-    - run : node proto/wtools/amid/l4_files.test/Fb.test.ss v:10 r:hardLinkCreate
-      continue-on-error : true
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+
+    - run : npm test
