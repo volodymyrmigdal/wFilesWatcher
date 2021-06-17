@@ -235,7 +235,7 @@ function exportString( o )
   if( it.verbosity >= 1 )
   {
     if( o.withName )
-    it.levelUp();
+    it.tabLevelUp();
 
     let watcherArray = self.watcherArray.slice();
     _.each( watcherArray, ( watcher ) =>
@@ -245,7 +245,7 @@ function exportString( o )
     })
 
     if( o.withName )
-    it.levelDown();
+    it.tabLevelDown();
   }
 
   return it;

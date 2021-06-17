@@ -223,24 +223,24 @@ function exportString( o )
 
   if( it.verbosity >= 1 )
   {
-    it.levelUp();
+    it.tabLevelUp();
     it.lineWrite( 'FilePath:' )
-    it.levelUp();
+    it.tabLevelUp();
     _.each( self.filePath, ( val, filePath ) =>
     {
       it.lineWrite( `- ${filePath}` );
     })
-    it.levelDown();
-    it.levelDown();
+    it.tabLevelDown();
+    it.tabLevelDown();
 
     if( it.verbosity >= 2 )
     {
-      it.levelUp();
+      it.tabLevelUp();
       it.lineWrite( `Filter:` );
-      it.levelUp();
+      it.tabLevelUp();
       it.lineWrite( _.entity.exportJs( self.filter ) );
-      it.levelDown();
-      it.levelDown();
+      it.tabLevelDown();
+      it.tabLevelDown();
     }
   }
 
