@@ -1287,6 +1287,49 @@ async function renameOrder( test )
 
 //
 
+async function renameOrderExperiment( test )
+{
+  let context = this;
+  let a = test.assetFor( false );
+
+  /* - */
+
+  var ok = true;
+
+  while( ok )
+  {
+    a.reflect();
+    var filePath = a.abs( 'src' );
+    var filePath2 = a.abs( 'dst' );
+    a.fileProvider.fileWrite( filePath, filePath );
+    await _.time.out( context.t1 );
+    var eventReady = _.Consequence();
+    var files = [];
+    var watcher = await context.watcher.watch( a.fileProvider.path.dir( filePath ), ( e ) =>
+    {
+      console.log( _.entity.exportJs( e.files ) );
+      files.push( ... e.files );
+      if( files.length === 2 )
+      eventReady.take( null )
+    });
+    a.fileProvider.fileRename( filePath2, filePath );
+    await eventReady;
+    test.identical( files.length, 2 );
+    ok = ok && test.identical( files[ 0 ].changeType, 'delete' )
+    ok = ok && test.identical( files[ 1 ].changeType, 'add' )
+    await watcher.close();
+  }
+
+
+  /* - */
+
+  return null;
+}
+
+renameOrderExperiment.experimental = 1;
+
+//
+
 async function close( test )
 {
   let context = this;
@@ -1382,6 +1425,7 @@ const Proto =
     watchFollowingSymlinks,
 
     renameOrder,
+    renameOrderExperiment,
 
     close,
   }

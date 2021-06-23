@@ -266,100 +266,7 @@ function _enable()
     return _.Consequence.AndKeep( ... cons );
   })
 
-  ready.then( () =>
-  {
-
-    self.client.on( 'subscription', ( resp ) =>
-    {
-      if( resp.canceled )
-      return;
-
-      if( resp.is_fresh_instance )
-      return;
-
-      let sub = self.subscriptionMap[ resp.subscription ];
-      let watchDescriptor = sub.watchDescriptor;
-      let oroot = resp.root;
-      let files = [];
-      let terminals = [];
-
-      resp.files.forEach( ( file ) =>
-      {
-        if( file.type === 'd' )
-        files.push( file )
-        else
-        terminals.push( file )
-      });
-      files.push( ... terminals );
-
-      files.forEach( ( file ) =>
-      {
-        if( !features.watchedDirRenameDetection )
-        {
-          if( file.exists && !file.ino )
-          {
-            let stat = _.fileProvider.statRead( _.path.join( oroot, file.name ) );
-            if( stat )
-            file.ino = stat.ino;
-          }
-
-          if( !_.strBegins( file.name, watchDescriptor.relativeWatchPath ) )
-          {
-            if( !file.ino )
-            return;
-
-            if( BigInt( file.ino ) !== watchDescriptor.ino )
-            return;
-
-            if( file.new )
-            {
-              watchDescriptor.ino = BigInt( file.ino );
-              watchDescriptor.relativeWatchPath = file.name;
-              resp.root = _.path.join( oroot, watchDescriptor.relativeWatchPath );
-              file.name = _.path.relative( watchDescriptor.relativeWatchPath, file.name );
-            }
-          }
-
-          if( BigInt( file.ino ) === watchDescriptor.ino )
-          {
-            let isDir = file.type === 'd';
-            if( isDir && !file.new && file.exists )
-            return;
-          }
-          else
-          {
-            resp.root = _.path.join( oroot, watchDescriptor.relativeWatchPath );
-            file.name = _.path.relative( watchDescriptor.relativeWatchPath, file.name );
-          }
-        }
-
-        let record = Object.create( null );
-        record.filePath = file.name;
-        record.watchPath = resp.root;
-        record.size = file.size;
-        record.native = file;
-
-        record.changeType = 'modify';
-
-        if( !file.exists )
-        record.changeType = 'delete';
-        else if( file.new )
-        record.changeType = 'add'
-
-        let e =
-        {
-          kind : 'file.change',
-          watcher : self,
-          files : [ record ]
-        }
-
-        self.manager._onChange( e );
-        self.onChange( e );
-      })
-    });
-
-    return null;
-  })
+  ready.then( () => _subscribe.call( self ) )
 
   ready.then( () =>
   {
@@ -382,6 +289,129 @@ function _enable()
   })
 
   return ready;
+}
+
+//
+
+function _subscribe()
+{
+  let self = this;
+  let client = self.client;
+  let features = self.Features;
+
+  client.on( 'subscription', subscriptionHandler );
+
+  return null;
+
+  /* */
+
+  function subscriptionHandler( resp )
+  {
+    if( resp.canceled )
+    return;
+
+    if( resp.is_fresh_instance )
+    return;
+
+    let sub = self.subscriptionMap[ resp.subscription ];
+    let watchDescriptor = sub.watchDescriptor;
+    let oroot = resp.root;
+    let files = [];
+    let terminals = [];
+
+    resp.files.forEach( ( file ) =>
+    {
+      if( file.type === 'd' )
+      files.push( file )
+      else
+      terminals.push( file )
+    });
+    files.push( ... terminals );
+
+    let changeMap =
+    {
+      'modify' : [],
+      'delete' : [],
+      'add' : []
+    }
+
+    files.forEach( ( file ) =>
+    {
+      if( !features.watchedDirRenameDetection )
+      {
+        if( file.exists && !file.ino )
+        {
+          let stat = _.fileProvider.statRead( _.path.join( oroot, file.name ) );
+          if( stat )
+          file.ino = stat.ino;
+        }
+
+        if( !_.strBegins( file.name, watchDescriptor.relativeWatchPath ) )
+        {
+          if( !file.ino )
+          return;
+
+          if( BigInt( file.ino ) !== watchDescriptor.ino )
+          return;
+
+          if( file.new )
+          {
+            watchDescriptor.ino = BigInt( file.ino );
+            watchDescriptor.relativeWatchPath = file.name;
+            resp.root = _.path.join( oroot, watchDescriptor.relativeWatchPath );
+            file.name = _.path.relative( watchDescriptor.relativeWatchPath, file.name );
+          }
+        }
+
+        if( BigInt( file.ino ) === watchDescriptor.ino )
+        {
+          let isDir = file.type === 'd';
+          if( isDir && !file.new && file.exists )
+          return;
+        }
+        else
+        {
+          resp.root = _.path.join( oroot, watchDescriptor.relativeWatchPath );
+          file.name = _.path.relative( watchDescriptor.relativeWatchPath, file.name );
+        }
+      }
+
+      let record = Object.create( null );
+      record.filePath = file.name;
+      record.watchPath = resp.root;
+      record.size = file.size;
+      record.native = file;
+
+      record.changeType = 'modify';
+
+      if( !file.exists )
+      record.changeType = 'delete';
+      else if( file.new )
+      record.changeType = 'add'
+
+      let e =
+      {
+        kind : 'file.change',
+        watcher : self,
+        files : [ record ]
+      }
+
+      changeMap[ record.changeType ].push( e );
+
+    })
+
+    changeMap.delete.forEach( ( e ) => reportChange( e ) )
+    changeMap.add.forEach( ( e ) => reportChange( e ) )
+    changeMap.modify.forEach( ( e ) => reportChange( e ) )
+
+  }
+
+  function reportChange( e )
+  {
+    self.manager._onChange( e );
+    self.onChange( e );
+  }
+
 }
 
 //
