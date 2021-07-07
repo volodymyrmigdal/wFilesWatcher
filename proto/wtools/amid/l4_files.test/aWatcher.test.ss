@@ -430,7 +430,7 @@ async function hardLinkRewrite( test )
   {
     console.log( _.entity.exportJs( e.files ) );
     files.push( ... e.files )
-    if( files.length )
+    if( files.length === 1 )
     eventReady.take( e )
   })
   a.fileProvider.fileDelete( linkPath );
