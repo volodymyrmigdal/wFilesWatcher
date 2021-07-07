@@ -1285,6 +1285,8 @@ async function renameOrder( test )
   return null;
 }
 
+renameOrder.experimental = 1;
+
 //
 
 async function renameOrderExperiment( test )
