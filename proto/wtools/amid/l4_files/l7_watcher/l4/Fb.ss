@@ -551,7 +551,7 @@ function _close()
 
   ready.thenGive( () => self.client.command( [ 'watch-del-all' ], ready.tolerantCallback() ) );
   ready.thenGive( () => self.client.command( [ 'shutdown-server' ], ready.tolerantCallback() ) );
-  ready.delay( 1000 );//workaround for shutdown problem on Windows
+  ready.delay( 1000 );//workaround for shutdown problem on Windows https://github.com/facebook/watchman/issues/764
 
   return ready;
 }
